@@ -1,0 +1,23 @@
+# Base image
+FROM node:20.11-alpine
+
+ARG COMMIT_HASH
+ENV COMMIT_HASH=$COMMIT_HASH
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+COPY ./package*.json ./
+COPY ./api/package*.json ./api/
+
+RUN npm install
+
+# Copy application source code
+COPY ./api ./api
+
+# Expose the application port (change it if needed)
+EXPOSE 3000
+
+# Run the application
+CMD ["npm", "run", "start:dev","-w","api"]

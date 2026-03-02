@@ -1,0 +1,19 @@
+{
+    "version": 2,
+    "buildCommand": "nest build -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "builds": [
+        {
+            "src": "dist/main.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "dist/main.js"
+        }
+    ],
+    "env": {
+        "NODE_ENV": "production"
+    }
+}

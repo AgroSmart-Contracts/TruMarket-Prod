@@ -1,0 +1,33 @@
+# Stage 1: Build stage
+FROM node:20.11-alpine as builder
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY ./api/package*.json ./api/
+
+RUN npm ci
+
+COPY ./api ./api
+
+RUN npm run build -w api
+
+# Stage 2: Production-ready stage
+FROM node:20.11-alpine
+
+ARG COMMIT_HASH
+ENV COMMIT_HASH=$COMMIT_HASH
+
+WORKDIR /app
+
+# Copy only the necessary files from the build stage
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/api/package*.json ./api/
+
+COPY --from=builder /app/api/dist ./api/dist
+
+RUN npm ci --only=production
+
+EXPOSE 3000
+
+CMD [ "npm", "run", "start:prod","-w", "api"]

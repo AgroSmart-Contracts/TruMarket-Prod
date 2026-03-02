@@ -1,0 +1,14 @@
+node_modules
+/coverage
+logs
+.localstack
+.DS_Store
+
+.terraform
+.terraform*
+terraform.tfstate*
+
+
+.env
+*.ignore.*
+.env.web

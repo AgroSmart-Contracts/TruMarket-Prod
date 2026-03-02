@@ -1,0 +1,30 @@
+export const config = {
+  databaseUrl: process.env.DATABASE_URL || 'mongodb://mongo',
+  env: process.env.NODE_ENV || 'development',
+  logLevel: process.env.LOG_LEVEL || 'debug',
+  prettyLogs: process.env.PRETTY_LOGS === 'true',
+  logsDestination: process.env.LOGS_DESTINATION || '/app/logs/out.log',
+  version: process.env.COMMIT_HASH || 'v0.0.0',
+  // Storage configuration - using Vercel Blob Storage
+  // BLOB_READ_WRITE_TOKEN is required for file uploads
+  jwtSecret: process.env.JWT_SECRET || 'yourjsonwebtokensecret',
+  auth0Domain: process.env.AUTH0_DOMAIN || 'trumarket-dev.eu.auth0.com',
+  blockchainRpcUrl:
+    process.env.BLOCKCHAIN_RPC_URL || '',
+  blockchainPrivateKey: process.env.BLOCKCHAIN_PRIVATE_KEY || '',
+  blockchainChainId: process.env.BLOCKCHAIN_CHAIN_ID || '',
+  blockchainExplorer: process.env.BLOCKCHAIN_EXPLORER || '',
+  dealsManagerContractAddress: process.env.DEALS_MANAGER_CONTRACT_ADDRESS || '',
+  investmentTokenContractAddress:
+    process.env.INVESTMENT_TOKEN_CONTRACT_ADDRESS || '',
+  investmentTokenSymbol: process.env.INVESTMENT_TOKEN_SYMBOL || '',
+  investmentTokenDecimals: process.env.INVESTMENT_TOKEN_DECIMALS || '',
+  automaticDealsAcceptance: process.env.AUTOMATIC_DEALS_ACCEPTANCE === 'true',
+  emailHost: process.env.EMAIL_HOST || '',
+  emailUsername: process.env.EMAIL_USERNAME || '',
+  emailPassword: process.env.EMAIL_PASSWORD || '',
+  appDomain: process.env.APP_DOMAIN || 'https://app.trumarket.tech',
+  mailTo: process.env.MAIL_TO,
+  vapidPublicKey: process.env.VAPID_PUBLIC_KEY,
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
+};
