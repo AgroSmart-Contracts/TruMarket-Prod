@@ -70,8 +70,8 @@ flowchart LR
 
     subgraph CurrentRails[Current Payment Rails]
         BuyerBank[Buyer Bank]
-        IDA[IDA (On-ramp HK)]
-        CircleMint[Circle Mint (Off-ramp Peru)]
+        IDA["IDA (On-ramp HK)"]
+        CircleMint["Circle Mint (Off-ramp Peru)"]
         Partner[Current On/Off-Ramp Partner]
         SupplierBank[Supplier Bank]
     end
@@ -98,7 +98,7 @@ flowchart LR
     AgroPay --> Partner
     BuyerBank -->|Fiat funding| IDA
     IDA -->|On-ramped funds| Partner
-    Partner -->|Off-ramp to Peru (Circle Mint)| CircleMint
+    Partner -->|Off-ramp to Peru| CircleMint
     CircleMint -->|Supplier payout in fiat| SupplierBank
     Partner -->|Payment status| AgroPay
     AgroPay -->|Status shown in TruMarket| API
