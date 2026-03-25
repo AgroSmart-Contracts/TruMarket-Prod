@@ -1,9 +1,16 @@
 import { AlchemyProvider, ethers } from 'ethers';
-import { DealsManagerContract } from './contract';
+import fs from 'fs';
+import path from 'path';
 
 require('dotenv').config();
 
 async function main() {
+  const artifactPath = path.join(
+    __dirname,
+    '../../protocol/artifacts/contracts/DealsManager.sol/DealsManager.json'
+  );
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+
   // Define provider and wallet
   const sepoliaProvider = new AlchemyProvider(
     'sepolia',
@@ -21,7 +28,7 @@ async function main() {
 
   const newNftContract = new ethers.Contract(
     newContractAddress,
-    DealsManagerContract.abi,
+    artifact.abi,
     sepoliaWallet
   );
 

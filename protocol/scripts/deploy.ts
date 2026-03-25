@@ -11,7 +11,6 @@ async function main() {
 
   const dealsManager = await hre.ethers.deployContract('DealsManager', [
     deployerWallet.address,
-    await erc20.getAddress(),
   ]);
   await dealsManager.waitForDeployment();
 

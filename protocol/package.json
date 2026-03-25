@@ -7,6 +7,7 @@
     "local:node": "npx hardhat node",
     "local:deploy": "npx hardhat run scripts/deploy.ts --network localhost",
     "local:mint": "npx hardhat run scripts/mintDeal.ts --network localhost",
+    "local:mint-underlying": "npx hardhat run scripts/mintUnderlying.ts --network localhost",
     "local:faucet": "npx hardhat run scripts/faucet.ts --network localhost",
     "local:setup": "npm run local:deploy && npm run local:mint-underlying && npm run local:faucet",
     "compile": "npx hardhat compile",

@@ -1,0 +1,17 @@
+{
+  "builds": [
+    {
+      "path": "soljson.js",
+      "version": "0.8.26",
+      "build": "local",
+      "longVersion": "0.8.26+local",
+      "keccak256": "0x0",
+      "urls": [],
+      "platform": "wasm"
+    }
+  ],
+  "releases": {
+    "0.8.26": "0.8.26+local"
+  },
+  "latestRelease": "0.8.26"
+}

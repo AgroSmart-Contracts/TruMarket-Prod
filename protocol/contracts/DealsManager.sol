@@ -4,18 +4,46 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
-import {DealVault} from "./DealVault.sol";
 
 /**
  * @title DealsManager
- * @dev Manages the creation and progression of deals with milestone-based fund releases
- * @notice This contract handles deal creation, milestone progression, and fund management
+ * @dev Manages the creation and progression of deals with milestone/shipments tracking.
+ * @notice Liquidity and fund transfers are managed off-chain (e.g., Lagoon), so this contract only updates deal state.
  */
 contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
+    // Deal lifecycle stages for the off-chain Lagoon integration.
+    // - Stage is independent from milestone progress (`status`).
+    // - Milestone progress remains 0..8 (milestones 1..7 then completed).
+    uint8 public constant STAGE_DRAFT = 0;
+    uint8 public constant STAGE_SUPPLIER_INVITED = 1;
+    uint8 public constant STAGE_PUBLISHED = 2;
+    uint8 public constant STAGE_FUNDED = 3;
+    uint8 public constant STAGE_COMPLETED = 4;
+
+    /// @notice Minimum/maximum APY model bounds (stored as basis points).
+    /// @dev APY is derived from riskScore using a simple linear mapping:
+    /// maxApyBps (riskScore=0) -> minApyBps (riskScore=maxRiskScore)
+    uint256 public minApyBps = 500; // 5.00%
+    uint256 public maxApyBps = 1500; // 15.00%
+    uint16 public maxRiskScore = 100;
+
+    /// @notice Emitted when Lagoon routes liquidity to this deal (per-deal vault allocation)
+    event DealFunded(uint256 indexed dealId, address perDealVault);
+
+    /// @notice Emitted when Trumarket admin assigns riskScore and derived APY
+    event DealRiskScoreAssigned(
+        uint256 indexed dealId,
+        uint16 riskScore,
+        uint256 apyBps
+    );
+
+    /// @notice Emitted when the buyer invites a supplier
+    event DealSupplierInvited(uint256 indexed dealId, address indexed supplier);
+
+    /// @notice Emitted when the deal is published to investors
+    event DealPublished(uint256 indexed dealId, address indexed publishedBy);
+
     /// @notice Emitted when a new deal is created
     event DealCreated(
         uint256 indexed dealId,
@@ -26,7 +54,7 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
     event DealMilestoneChanged(
         uint256 indexed dealId,
         uint8 milestone,
-        uint256 amountTransferred
+        uint256 amountTransferred // Always 0 in the Lagoon/off-chain funding model
     );
     /// @notice Emitted when a deal is completed
     event DealCompleted(uint256 indexed dealId);
@@ -36,47 +64,34 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
         address indexed oldBorrower,
         address indexed newBorrower
     );
-    /// @notice Emitted when a borrower donates to a deal
-    event BorrowerDonation(
-        uint256 indexed dealId,
-        address indexed borrower,
-        uint256 amount
-    );
-    /// @notice Emitted when funds are transferred from a deal's vault
-    event VaultFundsTransferred(
-        uint256 indexed dealId,
-        address indexed recipient,
-        uint256 amount
-    );
+    // Note: funding is now managed off-chain via Lagoon; this contract only tracks deal lifecycle.
 
     /// @dev Structure representing a deal
     struct Deal {
-        uint8 status; // Current status of the deal
+        uint8 status; // Milestone progress: 0..8
+        uint8 stage; // Buyer/supplier/publish/funding lifecycle stage: 0..4
         uint8[7] milestones; // Milestone percentages
-        address vault; // Address of the deal's vault
         uint256 maxDeposit; // Maximum deposit amount
-        address borrower; // Address of the borrower
+        address borrower; // Supplier payout recipient (historically called "borrower")
+        address buyer; // Buyer that created the deal
+        address vault; // Lagoon-created per-deal vault
+        bool riskScoreAssigned;
+        uint16 riskScore;
+        uint256 apyBps;
     }
 
-    /// @notice Address of the underlying token (e.g., USDC)
-    address private _underlying;
     /// @notice Counter for the next token ID
     uint256 private _nextTokenId;
     /// @notice Array of all deals
     Deal[] private _deals;
 
     /**
-     * @dev Initializes the contract with the owner and underlying token
+     * @dev Initializes the contract with an initial owner.
      * @param initialOwner_ Address of the initial owner
-     * @param underlying_ Address of the underlying token
      */
-    constructor(
-        address initialOwner_,
-        address underlying_
-    ) ERC721("TruMarketDeals", "TMD") Ownable(initialOwner_) {
-        require(underlying_ != address(0), "Invalid underlying token");
-        _underlying = underlying_;
-    }
+    constructor(address initialOwner_)
+        ERC721("TruMarketDeals", "TMD")
+        Ownable(initialOwner_) {}
 
     /**
      * @dev Override transferOwnership to add zero address check
@@ -103,7 +118,6 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
     ) public onlyOwner nonReentrant {
         require(borrower_ != address(0), "Invalid borrower address");
         require(maxDeposit_ > 0, "Max deposit must be positive");
-        require(milestones_.length == 7, "Invalid milestones length");
 
         uint256 tokenId = _nextTokenId++;
 
@@ -114,17 +128,65 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
 
         require(sum == 100, "Milestones distribution should be 100");
 
-        address vaultAddress = address(
-            new DealVault(_underlying, maxDeposit_, maxDeposit_, address(this))
-        );
-
-        Deal memory deal = Deal(0, milestones_, vaultAddress, maxDeposit_, borrower_);
+        Deal memory deal = Deal({
+            status: 0,
+            stage: STAGE_DRAFT,
+            milestones: milestones_,
+            maxDeposit: maxDeposit_,
+            borrower: borrower_,
+            buyer: borrower_,
+            vault: address(0),
+            riskScoreAssigned: false,
+            riskScore: 0,
+            apyBps: 0
+        });
 
         _deals.push(deal);
 
-        _safeMint(msg.sender, tokenId);
+        // Mint the deal NFT to the buyer to match the buyer-led flow.
+        _safeMint(borrower_, tokenId);
 
         emit DealCreated(tokenId, borrower_, maxDeposit_);
+    }
+
+    /**
+     * @notice Buyer creates a new deal.
+     * @dev This is the buyer-led entrypoint. For backwards-compatibility with existing backends,
+     * the `mint(...)` function (admin-only) still exists and performs the same initialization.
+     */
+    function createDeal(
+        uint8[7] memory milestones_,
+        uint256 maxDeposit_
+    ) external nonReentrant returns (uint256) {
+        address buyer_ = msg.sender;
+        require(buyer_ != address(0), "Invalid buyer address");
+        require(maxDeposit_ > 0, "Max deposit must be positive");
+
+        uint256 sum = 0;
+        for (uint i = 0; i < milestones_.length; i++) {
+            sum += uint256(milestones_[i]);
+        }
+        require(sum == 100, "Milestones distribution should be 100");
+
+        uint256 tokenId = _nextTokenId++;
+
+        Deal memory deal = Deal({
+            status: 0,
+            stage: STAGE_DRAFT,
+            milestones: milestones_,
+            maxDeposit: maxDeposit_,
+            borrower: buyer_, // supplier not invited yet; placeholder = buyer
+            buyer: buyer_,
+            vault: address(0),
+            riskScoreAssigned: false,
+            riskScore: 0,
+            apyBps: 0
+        });
+
+        _deals.push(deal);
+        _safeMint(buyer_, tokenId);
+        emit DealCreated(tokenId, buyer_, maxDeposit_);
+        return tokenId;
     }
 
     /**
@@ -135,7 +197,7 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
     function milestones(
         uint256 tokenId_
     ) public view returns (uint8[7] memory) {
-        require(tokenId_ <= _nextTokenId, "Deal not found");
+        require(tokenId_ < _nextTokenId, "Deal not found");
         return _deals[tokenId_].milestones;
     }
 
@@ -145,18 +207,17 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
      * @return Current status of the deal
      */
     function status(uint256 tokenId_) public view returns (uint8) {
-        require(tokenId_ <= _nextTokenId, "Deal not found");
+        require(tokenId_ < _nextTokenId, "Deal not found");
         return _deals[tokenId_].status;
     }
 
     /**
-     * @notice Returns the vault address for a specific deal
+     * @notice Returns the lifecycle stage for a specific deal
      * @param tokenId_ ID of the deal
-     * @return Address of the deal's vault
      */
-    function vault(uint256 tokenId_) public view returns (address) {
-        require(tokenId_ <= _nextTokenId, "Deal not found");
-        return _deals[tokenId_].vault;
+    function dealStage(uint256 tokenId_) public view returns (uint8) {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        return _deals[tokenId_].stage;
     }
 
     /**
@@ -165,7 +226,7 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
      * @return Maximum deposit amount
      */
     function maxDeposit(uint256 tokenId_) public view returns (uint256) {
-        require(tokenId_ <= _nextTokenId, "Deal not found");
+        require(tokenId_ < _nextTokenId, "Deal not found");
         return _deals[tokenId_].maxDeposit;
     }
 
@@ -178,53 +239,20 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
     function proceed(
         uint256 tokenId_,
         uint8 milestone_
-    ) public onlyOwner nonReentrant {
+    ) public nonReentrant {
         require(tokenId_ < _nextTokenId, "Deal not found");
+        require(_deals[tokenId_].stage == STAGE_FUNDED, "Deal not funded yet");
+        require(_isMilestoneExecutor(tokenId_, msg.sender), "Not authorized to proceed");
         require(
             _deals[tokenId_].status + 1 == milestone_,
             "wrong milestone to proceed to"
         );
         require(milestone_ > 0 && milestone_ < 8, "Invalid milestone");
 
-        if (milestone_ == 1) {
-            // Deals can start regardless of funding level
-            // Pause and block deposits when starting the deal
-            DealVault(_deals[tokenId_].vault).pause();
-            DealVault(_deals[tokenId_].vault).blockDeposits();
-        }
-
-        // Transfer funds based on milestone percentage of available assets
-        // For partially funded deals, transfers percentage of what's actually available
-        // This allows partially filled vaults to be fully drained through milestones
-        // For off-chain deals with empty vaults, no transfer occurs (amountTransferred = 0)
-        uint256 amountTransferred = 0;
-        if (_deals[tokenId_].milestones[milestone_ - 1] != 0) {
-            uint256 vaultAssets = DealVault(_deals[tokenId_].vault)
-                .totalAssets();
-
-            if (vaultAssets > 0) {
-                // Calculate transfer amount as percentage of available assets
-                // This ensures proportional distribution for partially funded deals
-                uint256 amountToTransfer = Math.mulDiv(
-                    vaultAssets,
-                    _deals[tokenId_].milestones[milestone_ - 1],
-                    100
-                );
-
-                // Transfer funds if amount is positive
-                if (amountToTransfer > 0) {
-                    DealVault(_deals[tokenId_].vault).transferToBorrower(
-                        _deals[tokenId_].borrower,
-                        amountToTransfer
-                    );
-                    amountTransferred = amountToTransfer;
-                }
-            }
-            // If vault is empty (off-chain deal), amountTransferred remains 0
-        }
-
+        // Funding is now managed off-chain (Lagoon-managed liquidity pool).
+        // This contract only tracks deal progression, so `amountTransferred` is always 0.
         _deals[tokenId_].status++;
-        emit DealMilestoneChanged(tokenId_, milestone_, amountTransferred);
+        emit DealMilestoneChanged(tokenId_, milestone_, 0);
     }
 
     /**
@@ -232,89 +260,164 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
      * @dev Includes reentrancy protection and status validation
      * @param tokenId_ ID of the deal
      */
-    function setDealCompleted(uint256 tokenId_) public onlyOwner nonReentrant {
-        require(tokenId_ <= _nextTokenId, "Deal not found");
+    function setDealCompleted(uint256 tokenId_) public nonReentrant {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        require(_deals[tokenId_].stage == STAGE_FUNDED, "Deal not funded");
+        require(_isMilestoneExecutor(tokenId_, msg.sender), "Not authorized to complete");
         require(
             _deals[tokenId_].status == 7,
             "all milestones must be completed"
         );
 
-        DealVault(_deals[tokenId_].vault).complete();
-
         _deals[tokenId_].status++;
+        _deals[tokenId_].stage = STAGE_COMPLETED;
         emit DealCompleted(tokenId_);
     }
 
     /**
-     * @notice Changes the borrower of a deal
-     * @dev Only callable by the owner
-     * @param tokenId_ ID of the deal
-     * @param newBorrower_ Address of the new borrower
+     * @notice Buyer invites the supplier to the deal
      */
-    function changeDealBorrower(
-        uint256 tokenId_,
-        address newBorrower_
+    function inviteSupplier(uint256 tokenId_, address supplier_) public nonReentrant {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        require(supplier_ != address(0), "Invalid supplier address");
+
+        Deal storage d = _deals[tokenId_];
+        require(d.stage == STAGE_DRAFT, "Deal not in draft stage");
+        require(msg.sender == d.buyer || msg.sender == owner(), "Not authorized to invite supplier");
+        if (supplier_ == d.borrower) {
+            // Allow admin migration/initialization to move the state even if the supplier equals the placeholder.
+            require(msg.sender == owner(), "Same supplier");
+        }
+
+        address oldBorrower = d.borrower;
+        d.borrower = supplier_;
+        d.stage = STAGE_SUPPLIER_INVITED;
+
+        // Historical event name preserved for compatibility with existing indexers.
+        emit DealBorrowerChanged(tokenId_, oldBorrower, supplier_);
+        emit DealSupplierInvited(tokenId_, supplier_);
+    }
+
+    /**
+     * @notice Publishes the deal to investors (buyer or supplier)
+     */
+    function publishToInvestors(uint256 tokenId_) public nonReentrant {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+
+        Deal storage d = _deals[tokenId_];
+        require(d.stage == STAGE_SUPPLIER_INVITED, "Deal not ready for publishing");
+        require(msg.sender == d.buyer || msg.sender == d.borrower || msg.sender == owner(), "Not authorized to publish");
+
+        d.stage = STAGE_PUBLISHED;
+        emit DealPublished(tokenId_, msg.sender);
+    }
+
+    /**
+     * @notice Admin assigns riskScore and derived APY
+     */
+    function assignRiskScore(uint256 tokenId_, uint16 riskScore_) public onlyOwner nonReentrant {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        Deal storage d = _deals[tokenId_];
+        require(d.stage == STAGE_PUBLISHED, "Deal not published");
+        require(!d.riskScoreAssigned, "Risk score already assigned");
+        require(riskScore_ <= maxRiskScore, "Invalid risk score");
+
+        uint256 apyBps_ = _riskScoreToApyBps(riskScore_);
+        d.riskScoreAssigned = true;
+        d.riskScore = riskScore_;
+        d.apyBps = apyBps_;
+
+        emit DealRiskScoreAssigned(tokenId_, riskScore_, apyBps_);
+    }
+
+    /**
+     * @notice Admin marks deal as funded after Lagoon routes capital to the per-deal vault
+     */
+    function markDealFunded(uint256 tokenId_) public onlyOwner nonReentrant {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        Deal storage d = _deals[tokenId_];
+        require(d.stage == STAGE_PUBLISHED, "Deal not published");
+        require(d.riskScoreAssigned, "Risk score not assigned");
+
+        d.stage = STAGE_FUNDED;
+        emit DealFunded(tokenId_, d.vault);
+    }
+
+    /**
+     * @notice Admin stores Lagoon-created per-deal vault address
+     */
+    function setDealVault(uint256 tokenId_, address perDealVault_) public onlyOwner nonReentrant {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        require(perDealVault_ != address(0), "Invalid vault address");
+        _deals[tokenId_].vault = perDealVault_;
+    }
+
+    /// @notice Returns the per-deal vault address (Lagoon-created)
+    function vault(uint256 tokenId_) public view returns (address) {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        return _deals[tokenId_].vault;
+    }
+
+    /// @notice Returns the buyer address for a specific deal
+    function buyer(uint256 tokenId_) public view returns (address) {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        return _deals[tokenId_].buyer;
+    }
+
+    /// @notice Returns the configured APY for a specific deal
+    function apyBps(uint256 tokenId_) public view returns (uint256) {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        return _deals[tokenId_].apyBps;
+    }
+
+    /// @notice Returns the risk score for a specific deal
+    function riskScore(uint256 tokenId_) public view returns (uint16) {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        return _deals[tokenId_].riskScore;
+    }
+
+    /**
+     * @notice Backwards-compatible alias for supplier invitation.
+     * @dev Historically called `changeDealBorrower`; now used for supplier onboarding.
+     */
+    function changeDealBorrower(uint256 tokenId_, address newBorrower_) public {
+        inviteSupplier(tokenId_, newBorrower_);
+    }
+
+    /**
+     * @notice Updates the APY model used when deriving APY from riskScore.
+     */
+    function setApyModel(
+        uint16 maxRiskScore_,
+        uint256 minApyBps_,
+        uint256 maxApyBps_
     ) public onlyOwner {
-        require(tokenId_ < _nextTokenId, "Deal not found");
-        require(newBorrower_ != address(0), "Invalid borrower address");
-        require(newBorrower_ != _deals[tokenId_].borrower, "Same borrower");
+        require(maxRiskScore_ > 0, "Invalid maxRiskScore");
+        require(minApyBps_ <= maxApyBps_, "minApyBps > maxApyBps");
+        maxRiskScore = maxRiskScore_;
+        minApyBps = minApyBps_;
+        maxApyBps = maxApyBps_;
+    }
 
-        address oldBorrower = _deals[tokenId_].borrower;
-        _deals[tokenId_].borrower = newBorrower_;
+    function _riskScoreToApyBps(uint16 riskScore_) internal view returns (uint256) {
+        // Linear mapping: higher risk -> lower APY.
+        // riskScore_=0 => maxApyBps, riskScore_=maxRiskScore => minApyBps
+        uint256 range = maxApyBps - minApyBps;
+        uint256 scaled = (uint256(riskScore_) * range) / uint256(maxRiskScore);
+        return maxApyBps - scaled;
+    }
 
-        emit DealBorrowerChanged(tokenId_, oldBorrower, newBorrower_);
+    function _isMilestoneExecutor(uint256 tokenId_, address executor) internal view returns (bool) {
+        Deal storage d = _deals[tokenId_];
+        return executor == d.buyer || executor == d.borrower || executor == owner();
     }
 
     /**
-     * @notice Allows a borrower to donate funds to their deal's vault
-     * @dev Includes reentrancy protection and borrower validation
+     * @notice Returns the borrower address for a specific deal
      * @param tokenId_ ID of the deal
-     * @param amount Amount of underlying tokens to donate
      */
-    function donateToDeal(
-        uint256 tokenId_,
-        uint256 amount
-    ) public nonReentrant {
+    function borrower(uint256 tokenId_) public view returns (address) {
         require(tokenId_ < _nextTokenId, "Deal not found");
-        require(
-            msg.sender == _deals[tokenId_].borrower,
-            "Only borrower can donate"
-        );
-        require(amount > 0, "Amount must be positive");
-
-        // Transfer tokens from borrower to DealsManager
-        IERC20(_underlying).transferFrom(msg.sender, address(this), amount);
-
-        // Approve the vault to spend the tokens
-        IERC20(_underlying).approve(_deals[tokenId_].vault, amount);
-
-        // Call donate on the vault
-        DealVault(_deals[tokenId_].vault).donate(amount);
-
-        emit BorrowerDonation(tokenId_, msg.sender, amount);
-    }
-
-    /**
-     * @notice Allows the owner to transfer funds from a deal's vault to either the borrower or themselves
-     * @dev Only callable by the owner and includes reentrancy protection
-     * @param tokenId_ ID of the deal
-     * @param amount Amount of underlying tokens to transfer
-     * @param toBorrower If true, transfer to borrower; if false, transfer to owner
-     */
-    function transferFromVault(
-        uint256 tokenId_,
-        uint256 amount,
-        bool toBorrower
-    ) public onlyOwner nonReentrant {
-        require(tokenId_ < _nextTokenId, "Deal not found");
-        require(amount > 0, "Amount must be positive");
-
-        address recipient = toBorrower ? _deals[tokenId_].borrower : owner();
-        require(recipient != address(0), "Invalid recipient address");
-
-        // Transfer funds from vault to recipient
-        DealVault(_deals[tokenId_].vault).transferToBorrower(recipient, amount);
-
-        emit VaultFundsTransferred(tokenId_, recipient, amount);
+        return _deals[tokenId_].borrower;
     }
 }

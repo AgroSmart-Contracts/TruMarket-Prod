@@ -1,7 +1,20 @@
 import { AlchemyProvider, ethers } from 'ethers';
-import { DealsManagerContract } from './contract';
 
 require('dotenv').config();
+
+// Minimal ABI for migrating deals + enabling the stage-gated milestone flow.
+const DEALS_MANAGER_ABI = [
+  'function ownerOf(uint256 tokenId) view returns (address)',
+  'function milestones(uint256 tokenId) view returns (uint8[7])',
+  'function status(uint256 tokenId) view returns (uint8)',
+  'function mint(uint8[7] milestones_, uint256 maxDeposit_, address borrower_)',
+  'function proceed(uint256 tokenId_, uint8 milestone_)',
+  'function inviteSupplier(uint256 tokenId_, address supplier_)',
+  'function publishToInvestors(uint256 tokenId_)',
+  'function assignRiskScore(uint256 tokenId_, uint16 riskScore_)',
+  'function markDealFunded(uint256 tokenId_)',
+  'function setDealCompleted(uint256 tokenId_)',
+] as const;
 
 async function main() {
   // Define provider and wallet
@@ -28,13 +41,13 @@ async function main() {
   // Create contracts instances
   const oldNftContract = new ethers.Contract(
     oldContractAddress,
-    DealsManagerContract.abi,
+    DEALS_MANAGER_ABI,
     polygonAmoyWallet
   );
 
   const newNftContract = new ethers.Contract(
     newContractAddress,
-    DealsManagerContract.abi,
+    DEALS_MANAGER_ABI,
     sepoliaWallet
   );
 
@@ -67,10 +80,27 @@ async function main() {
     await tx.wait();
     console.log('after minting');
 
+    // Enable the new stage-gated milestone flow so we can sync historical milestone progress.
+    await (await newNftContract.inviteSupplier(BigInt(i), sepoliaWallet.address)).wait();
+    await (await newNftContract.publishToInvestors(BigInt(i))).wait();
+    await (await newNftContract.assignRiskScore(BigInt(i), 50)).wait();
+    await (await newNftContract.markDealFunded(BigInt(i))).wait();
+
     const status = (await oldNftContract.status(i)) as number;
-    for (let j = 1; j <= status; j++) {
-      const tx = await newNftContract.proceed(BigInt(i), j);
-      await tx.wait();
+
+    if (status > 0 && status <= 7) {
+      for (let j = 1; j <= status; j++) {
+        const tx2 = await newNftContract.proceed(BigInt(i), j);
+        await tx2.wait();
+      }
+    } else if (status === 8) {
+      for (let j = 1; j <= 7; j++) {
+        const tx2 = await newNftContract.proceed(BigInt(i), j);
+        await tx2.wait();
+      }
+
+      const tx2 = await newNftContract.setDealCompleted(BigInt(i));
+      await tx2.wait();
     }
 
     const newStatus = await newNftContract.status(i);
