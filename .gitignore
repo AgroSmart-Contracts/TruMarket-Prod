@@ -12,3 +12,4 @@ terraform.tfstate*
 .env
 *.ignore.*
 .env.web
+tools/deals-csv-import/.venv

@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 
+import { BankAccountResponseDto } from '@/bank-accounts/dto/bank-account-response.dto';
+
 export class CompanyDto {
   @ApiProperty()
   @Expose()
@@ -63,40 +65,6 @@ export class NotificationsSettingsDto {
   supplierCancelledMilestoneApproval: boolean;
 }
 
-export class BankDetailsDto {
-  @ApiProperty()
-  @Expose()
-  beneficiaryName: string;
-
-  @ApiProperty({ required: false })
-  @Expose()
-  country?: string;
-
-  @ApiProperty({ required: false })
-  @Expose()
-  addressLine1?: string;
-
-  @ApiProperty({ required: false })
-  @Expose()
-  city?: string;
-
-  @ApiProperty({ required: false })
-  @Expose()
-  postalCode?: string;
-
-  @ApiProperty({ required: false })
-  @Expose()
-  bankName?: string;
-
-  @ApiProperty({ required: false })
-  @Expose()
-  accountNumber?: string;
-
-  @ApiProperty({ required: false })
-  @Expose()
-  swiftCode?: string;
-}
-
 export class UserDetailsResponseDto {
   constructor(res: UserDetailsResponseDto) {
     Object.assign(this, res);
@@ -118,17 +86,9 @@ export class UserDetailsResponseDto {
   @Expose()
   walletAddress: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: [BankAccountResponseDto], required: false })
   @Expose()
-  kycVerified: boolean;
-
-  @ApiProperty()
-  @Expose()
-  isBankLinked?: boolean;
-
-  @ApiProperty({ type: BankDetailsDto, required: false })
-  @Expose()
-  bankDetails?: BankDetailsDto;
+  bankAccounts?: BankAccountResponseDto[];
 
   @ApiProperty({ type: NotificationsSettingsDto })
   @Expose()

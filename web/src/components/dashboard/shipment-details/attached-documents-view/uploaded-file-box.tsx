@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import FileTypeDetector from "src/components/common/file-uploader/file-type-detector";
 import { AccountTypeEnum } from "src/interfaces/global";
@@ -33,7 +33,7 @@ const UploadedFileBox: React.FC<UploadedFileBoxProps> = ({
 }) => {
   const { accountType } = useUserInfo();
   const isBuyer = accountType === AccountTypeEnum.BUYER;
-  const [publishEnabled, setPublishEnabled] = React.useState(false);
+  const [publishEnabled, setPublishEnabled] = useState(false);
 
   useEffect(() => {
     // const key = localStorage.getItem("publishEnabled");
@@ -42,39 +42,47 @@ const UploadedFileBox: React.FC<UploadedFileBoxProps> = ({
     // }
   }, []);
 
+  const visibilityBtnBase =
+    "inline-flex w-full shrink-0 items-center justify-center rounded-md border-2 px-2 py-2 text-center text-[12px] font-semibold leading-tight transition-[box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4E8C37] focus-visible:ring-offset-1 disabled:opacity-50";
+
   return (
-    <div className={`group relative max-h-[200px] w-full max-w-[150px] rounded-[4px] border border-tm-black-20 `}>
+    <div className="group relative flex w-full max-w-[160px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       {isBuyer && !seen ? (
-        <p className="absolute left-[5px] top-[5px] z-[9] rounded-[4px] border border-tm-black-80 bg-[#D5D8DD] px-[4px] py-[1px] text-[13px] text-tm-black-80 shadow-lg">
+        <p className="absolute left-2 top-2 z-[9] rounded border border-slate-600 bg-slate-200 px-1.5 py-0.5 text-[11px] font-medium text-slate-800 shadow-sm">
           new
         </p>
       ) : null}
-      <FileTypeDetector
-        allowOnlyDownload={allowOnlyDownload}
-        fileType={fileType}
-        url={url}
-        description={description}
-        fileExtension={fileExtension}
-        milestoneId={milestoneId}
-        seen={seen}
-        id={id}
-        publiclyVisible={publiclyVisible}
-      />
+      <div className="shrink-0 border-b border-slate-100 bg-slate-50/80">
+        <FileTypeDetector
+          allowOnlyDownload={allowOnlyDownload}
+          fileType={fileType}
+          url={url}
+          description={description}
+          fileExtension={fileExtension}
+          milestoneId={milestoneId}
+          seen={seen}
+          id={id}
+          publiclyVisible={publiclyVisible}
+        />
+      </div>
       {handleChangeDocumentVisibility && publishEnabled ? (
         <div
-          className={`relative -top-[3px] max-h-[80px] min-h-[80px] w-full max-w-[150px] rounded-[4px] ${publiclyVisible ? "bg-tm-green-light" : "bg-tm-white"} p-[10px] shadow-inner`}
+          className={`flex min-h-0 flex-1 flex-col gap-2 p-2.5 ${publiclyVisible ? "bg-emerald-50/50" : "bg-white"}`}
         >
-          <p className="clamp-4 text-[14px] font-normal leading-[1.2em] text-tm-black-80">{description}</p>
+          <p className="line-clamp-3 min-h-[2.5rem] text-[13px] font-normal leading-snug text-slate-700">{description}</p>
           <button
-            className={`mt-2 w-full rounded px-2 py-1 text-[13px] font-semibold leading-[1.2em] ${publiclyVisible ? "text-tm-black bg-tm-gray-light" : "text-tm-black bg-tm-gray-light"} transition-shadow duration-200`}
+            type="button"
+            className={
+              publiclyVisible
+                ? `${visibilityBtnBase} border-slate-300 bg-white text-slate-800 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_0_rgba(15,23,42,0.08)]`
+                : `${visibilityBtnBase} border-[#4E8C37] bg-white !text-[#4E8C37] hover:-translate-y-0.5 hover:shadow-[0_6px_18px_0_rgba(78,140,55,0.22)]`
+            }
             onClick={() => handleChangeDocumentVisibility(id, !publiclyVisible)}
           >
             {publiclyVisible ? "Make private" : "Make public"}
           </button>
         </div>
-      ) : (
-        <></>
-      )}
+      ) : null}
     </div>
   );
 };

@@ -9,7 +9,13 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(async (config) => {
-  config.headers["Authorization"] = `Bearer ${Cookies.get("jwt")}`;
+  const jwt = Cookies.get("jwt");
+  // Avoid sending `Bearer undefined` which triggers `jwt malformed` on the backend.
+  if (jwt) {
+    config.headers["Authorization"] = `Bearer ${jwt}`;
+  } else {
+    delete config.headers["Authorization"];
+  }
 
   return config;
 });

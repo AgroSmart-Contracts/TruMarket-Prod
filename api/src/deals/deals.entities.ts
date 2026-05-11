@@ -35,9 +35,6 @@ export class Milestone {
   @Expose()
   status?: MilestoneStatus;
 
-  @ApiProperty()
-  @Expose()
-  approvalStatus?: MilestoneApprovalStatus;
 }
 
 export enum DealStatus {
@@ -54,18 +51,10 @@ export enum MilestoneStatus {
   Completed = 'completed',
 }
 
-export enum MilestoneApprovalStatus {
-  Pending = 'pending',
-  Submitted = 'submitted',
-  Approved = 'approved',
-  Denied = 'denied',
-}
-
 export class DealParticipant {
   id?: string;
   email: string;
   walletAddress?: string;
-  approved?: boolean;
   new?: boolean;
 }
 
@@ -126,6 +115,9 @@ export class Deal {
   suppliers: DealParticipant[];
   buyerCompany: DealCompany;
   supplierCompany: DealCompany;
+
+  // payments: list of Payment document ids associated with this deal
+  payments?: string[];
 
   // ui helper properties
   newDocuments: boolean;

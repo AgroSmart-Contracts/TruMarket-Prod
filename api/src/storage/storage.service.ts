@@ -1,16 +1,37 @@
 import { put, head } from '@vercel/blob';
+import { Readable } from 'stream';
 
 import { config } from '../config';
 
 export class StorageService {
-  private readonly token: string;
+  private readonly token?: string;
 
   constructor(token?: string) {
     // Vercel Blob requires BLOB_READ_WRITE_TOKEN environment variable
-    this.token = token || process.env.BLOB_READ_WRITE_TOKEN || '';
-    if (!this.token) {
-      console.warn('BLOB_READ_WRITE_TOKEN not set. File uploads will fail.');
+    this.token = token;
     }
+
+  private getToken(): string {
+    // Read token at runtime to ensure env vars are loaded
+    return this.token || config.blobReadWriteToken || '';
+  }
+
+  private sanitizeBlobPath(pathname: string): string {
+    const normalizedPath = pathname.replace(/\\/g, '/');
+    const segments = normalizedPath.split('/').filter(Boolean);
+
+    const sanitizedSegments = segments.map((segment) => {
+      const withoutUnsafeChars = segment
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-zA-Z0-9._-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
+      return withoutUnsafeChars || 'file';
+    });
+
+    return sanitizedSegments.join('/');
   }
 
   /**
@@ -40,14 +61,20 @@ export class StorageService {
     filename: string,
     file: Buffer,
   ): Promise<string | undefined> {
-    if (!this.token) {
+    const token = this.getToken();
+    if (!token) {
       throw new Error('BLOB_READ_WRITE_TOKEN is required for file uploads');
     }
 
     try {
-      const blob = await put(filename, file, {
+      const safePath = this.sanitizeBlobPath(filename);
+
+      // Vercel Blob expects either a ReadableStream, Blob, or string for put() body.
+      // Convert Buffer to a ReadableStream
+      const stream = Readable.from(file);
+      const blob = await put(safePath, stream, {
         access: 'public', // Make files publicly accessible
-        token: this.token,
+        token: token,
       });
 
       return blob.url;
@@ -63,13 +90,14 @@ export class StorageService {
    * @returns True if file exists, false otherwise
    */
   async fileExists(filename: string): Promise<boolean> {
-    if (!this.token) {
+    const token = this.getToken();
+    if (!token) {
       return false;
     }
 
     try {
       await head(filename, {
-        token: this.token,
+        token: token,
       });
       return true;
     } catch (error) {

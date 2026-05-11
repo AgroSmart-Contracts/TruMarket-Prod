@@ -1,5 +1,5 @@
 import type { IProvider } from "@web3auth/base";
-import Web3, { utils } from "web3";
+import Web3Lib from "web3";
 import { ethers } from "ethers";
 
 export default class EthereumRpc {
@@ -15,18 +15,17 @@ export default class EthereumRpc {
     if (!EthereumRpc.globalProvider) {
       console.log("Global provider not set. Call setGlobalProvider before creating an instance.");
     }
-    //@ts-ignore
-    this.provider = EthereumRpc.globalProvider;
+    this.provider = EthereumRpc.globalProvider as IProvider;
   }
 
   async waitForTransaction(txHash: string): Promise<any> {
-    const web3 = new Web3(this.provider as IProvider);
+    const web3 = new Web3Lib(this.provider as IProvider);
     return web3.eth.getTransactionReceipt(txHash);
   }
 
   async getAccounts(): Promise<string[]> {
     try {
-      const web3 = new Web3(this.provider as IProvider);
+      const web3 = new Web3Lib(this.provider as IProvider);
       const accounts = await web3.eth.getAccounts();
       return accounts;
     } catch (error: unknown) {
@@ -36,7 +35,7 @@ export default class EthereumRpc {
 
   async getBalance(): Promise<string> {
     try {
-      const web3 = new Web3(this.provider as IProvider);
+      const web3 = new Web3Lib(this.provider as IProvider);
       const accounts = await web3.eth.getAccounts();
       const balance = await web3.eth.getBalance(accounts[0]);
       return balance.toString();
@@ -65,7 +64,7 @@ export default class EthereumRpc {
 
   async sendData(to: string, data: string): Promise<string> {
     try {
-      const web3 = new Web3(this.provider as IProvider);
+      const web3 = new Web3Lib(this.provider as IProvider);
       const accounts = await web3.eth.getAccounts();
 
       // Get current gas price
@@ -103,7 +102,7 @@ export default class EthereumRpc {
 
   async sendEth(to: string, amount: string): Promise<string> {
     try {
-      const web3 = new Web3(this.provider as IProvider);
+      const web3 = new Web3Lib(this.provider as IProvider);
       const accounts = await web3.eth.getAccounts();
 
       // Validate address
@@ -153,7 +152,7 @@ export default class EthereumRpc {
 
   async signAndSendTransaction(): Promise<string> {
     try {
-      const web3 = new Web3(this.provider as IProvider);
+      const web3 = new Web3Lib(this.provider as IProvider);
       const accounts = await web3.eth.getAccounts();
 
       const txRes = await web3.eth.sendTransaction({

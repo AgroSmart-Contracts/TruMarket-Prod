@@ -4,6 +4,8 @@ import { SentryModule } from '@sentry/nestjs/setup';
 import { Connection } from 'mongoose';
 import { LoggerModule } from 'nestjs-pino';
 import pino from 'pino';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
@@ -12,10 +14,12 @@ import { config } from './config';
 import { providers } from './constants';
 import { DatabaseModule } from './database/database.module';
 import { DealsModule } from './deals/deals.module';
+import { BankAccountsModule } from './bank-accounts/bank-accounts.module';
 import { connectDB } from './infra/database/connectDB';
-import { KYCModule } from './kyc/kyc.module';
 import { loggerOptions } from './logger';
+import { PaymentsModule } from './payments/payments.module';
 import { UsersModule } from './users/users.module';
+import { OsnRuntimeSettingsModule } from './settings/osn-runtime-settings.module';
 
 import { ConfigModule } from '@nestjs/config';
 
@@ -37,7 +41,9 @@ const modules = [
   AuthModule,
   UsersModule,
   DealsModule,
-  KYCModule,
+  PaymentsModule,
+  BankAccountsModule,
+  OsnRuntimeSettingsModule,
 ];
 
 if (!process.env.E2E_TEST) {
@@ -67,8 +73,6 @@ if (!process.env.E2E_TEST) {
                 return pino.destination({ dest: 1, sync: false });
               }
               try {
-                const fs = require('fs');
-                const path = require('path');
                 const logDir = path.dirname(config.logsDestination);
                 // Create directory if it doesn't exist
                 if (!fs.existsSync(logDir)) {

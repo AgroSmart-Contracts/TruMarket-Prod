@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { User } from '@/users/users.entities';
+import { RoleType, User } from '@/users/users.entities';
 import { UsersRepository } from '@/users/users.repository';
 
 import { MongooseRepository } from './repository.mongoose';
@@ -25,5 +25,9 @@ export class UsersMongooseRepository
 
   findByEmails(emails: string[]): Promise<User[] | undefined> {
     return this.find({ email: { $in: emails } });
+  }
+
+  findByRole(role: RoleType): Promise<User[]> {
+    return this.find({ role } as any);
   }
 }

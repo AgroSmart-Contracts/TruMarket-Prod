@@ -6,7 +6,6 @@ import {
   DealStatus,
   DocumentFile,
   Milestone,
-  MilestoneApprovalStatus,
 } from './deals.entities';
 
 export interface FindByUserQuery {
@@ -26,11 +25,6 @@ export interface DealsRepository extends Repository<Deal> {
     milestoneId: string,
     document: { url: string; description: string; seenByUsers: string[] },
   ): Promise<DocumentFile>;
-  upadteMilestoneStatus(
-    dealId: string,
-    milestoneId: string,
-    approvalStatus: MilestoneApprovalStatus,
-  ): Promise<Milestone>;
   updateMilestoneDocument(
     dealId: string,
     milestoneId: string,

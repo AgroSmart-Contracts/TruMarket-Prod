@@ -7,9 +7,9 @@ import Loading from "src/components/common/loading";
 import { useWeb3AuthContext } from "src/context/web3-auth-context";
 import { UserProfileInfo } from "src/interfaces/auth";
 import EthereumRpc from "src/lib/web3/evm.web3";
+import { AuthService as AuthApiService } from "src/controller/AuthAPI.service";
 
 import WithdrawModal from "./WithdrawModal";
-import { AuthService as AuthApiService } from "src/controller/AuthAPI.service";
 
 interface UserInfoProps {
   userProfileInfo?: UserProfileInfo;

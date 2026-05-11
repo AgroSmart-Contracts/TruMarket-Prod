@@ -25,7 +25,7 @@ const ShipmentBaseInfo: React.FC<ShipmentBaseInfoProps> = ({
   const isBuyer = accountType === AccountTypeEnum.BUYER;
   return (
     <div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center rounded-[4px] border border-tm-black-20 bg-[#ffffff80] px-4 sm:px-[26px] py-3 sm:py-0 gap-3 sm:gap-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center rounded-[4px] border border-[#E2E8F0] bg-[#FFFFFF] px-4 sm:px-[26px] py-3 sm:py-0 gap-3 sm:gap-0 shadow-[0_10px_25px_rgba(15,23,42,0.08)]">
         <div className="flex-1 min-w-0 sm:max-w-[40%]">
         <InformationRow
           label={isBuyer ? "Supplier:" : "Buyer:"}

@@ -23,6 +23,8 @@ export interface EmailProps {
   descriptionText: string;
   buttonText: string;
   buttonHref: string;
+  /** Used only for diagnostics / mailer debug logs (not rendered in HTML). */
+  mailType?: string;
 }
 
 export const Email = ({
@@ -51,18 +53,21 @@ export const Email = ({
         <Body className="bg-[#2D3E57] my-auto mx-auto pt-[10px] pb-[40px] font-sans px-2 w-full overflow-x-hidden">
           <Section className="mt-[40px] mb-[24px]">
             <Img
-              src="https://trumarket-dev-bucket.s3.eu-west-1.amazonaws.com/deals/665d75576326295608ec9629/1717491406500-logo.png"
-              alt="Vercel"
-              className="my-0 mx-auto"
+              src={config.emailLogoUrl}
+              alt="TruMarket"
+              width={180}
+              className="my-0 mx-auto h-auto max-w-[180px]"
             />
           </Section>
           <Container className="bg-white  rounded-tl-[4px] rounded-tr-[4px] py-[30px] mx-auto px-[40px] w-full">
             <Text className="text-center font-bold text-[15px] text-[#1F2D42] m-0">
               {actionTitle}
             </Text>
-            <Text className="m-0 text-center opacity-80 text-[#2D3E57] text-[12px] leading-[1.2em] font-regular">
-              Agreement identifier: #{agreementId}
-            </Text>
+            {agreementId ? (
+              <Text className="m-0 text-center opacity-80 text-[#2D3E57] text-[12px] leading-[1.2em] font-regular">
+                Agreement identifier: #{agreementId}
+              </Text>
+            ) : null}
             <Container className="px-[60px] m-0">
               <Text className="text-center opacity-80 text-[13px] mt-[10px] leading-[1.2em] tracking-0 font-regular">
                 {descriptionText}

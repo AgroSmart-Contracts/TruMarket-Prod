@@ -1,5 +1,6 @@
 import React from "react";
 import { Control, FieldErrors, UseFormRegister, UseFormGetValues, UseFormSetValue, UseFormHandleSubmit } from "react-hook-form";
+
 import EmailInput from "src/components/common/email-input";
 import TermsCheckbox from "src/components/common/terms-checkbox";
 

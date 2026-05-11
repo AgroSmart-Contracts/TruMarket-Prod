@@ -4,7 +4,6 @@ import { Expose } from 'class-transformer';
 import {
   DocumentFile,
   Milestone,
-  MilestoneApprovalStatus,
   MilestoneStatus,
 } from '../deals.entities';
 
@@ -33,7 +32,4 @@ export class MilestoneResponseDto {
   @Expose()
   status?: MilestoneStatus;
 
-  @ApiProperty()
-  @Expose()
-  approvalStatus?: MilestoneApprovalStatus;
 }

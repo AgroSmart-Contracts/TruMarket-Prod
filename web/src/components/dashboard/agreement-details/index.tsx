@@ -16,7 +16,6 @@ import { ICreateShipmentParams, ShippingDetails } from "src/interfaces/shipment"
 import {
   arrayToCommaSeparatedString,
   commaSeparatedStringToArray,
-  isApprovedByAllUser,
   milestoneDescriptions,
   normalizeShipmentAgreementDetailsData,
   openInNewTab,
@@ -219,17 +218,7 @@ const AgreementDetailsView: React.FC<AgreementDetailsViewProps> = () => {
       setLoading(true);
       const response = await ShipmentService.updateShipmentDealDetails(query.id as string, { confirm: true });
       setShipmentId(response.id);
-      const buyersApproved = isApprovedByAllUser(response.buyers);
-      const suppliersApproved = isApprovedByAllUser(response.suppliers);
-
-      const allApproved = buyersApproved && suppliersApproved;
-      const waitingApproval = !buyersApproved || !suppliersApproved;
-
-      if ((isBuyer && allApproved) || (!isBuyer && allApproved)) {
-        setModalContent(AgreementDetailsModalContentEnum.SHIPMENT_CREATED);
-      } else if ((isBuyer && waitingApproval) || (!isBuyer && waitingApproval)) {
-        setModalContent(AgreementDetailsModalContentEnum.WAITING_PARTICIPANTS_TO_CONFIRM);
-      }
+      setModalContent(AgreementDetailsModalContentEnum.SHIPMENT_CREATED);
     } catch (err: any) {
       toast.error(err?.response?.data?.message);
     } finally {
@@ -408,7 +397,6 @@ const AgreementDetailsView: React.FC<AgreementDetailsViewProps> = () => {
         </div>
       </div>
       <AgreementActions
-        handleOpenAcceptModal={handleOpenAcceptModal}
         buyerEmails={shipmentAgreementDetails?.buyers || []}
         supplierEmails={shipmentAgreementDetails?.suppliers || []}
         handleShowCancelAcceptanceModal={() => {

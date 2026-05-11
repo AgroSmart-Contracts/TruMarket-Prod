@@ -49,11 +49,10 @@ describe('DealsService', () => {
           provide: NotificationsService,
           useValue: {
             sendInviteToSignupNotification: jest.fn(),
-            sendNewProposalNotification: jest.fn(),
+            sendDealCreatedNotification: jest.fn(),
             sendMilestoneApprovedNotification: jest.fn(),
           },
         },
-        NotificationsService,
         SubscriptionsService,
         BlockchainService,
         {
@@ -121,27 +120,30 @@ describe('DealsService', () => {
       } as Deal;
 
       jest
-        .spyOn(notificationsService, 'sendInviteToSignupNotification')
-        .mockResolvedValue(undefined);
-      jest
         .spyOn(dealsRepository, 'create')
         .mockResolvedValue(createdDeal as Deal);
       jest
-        .spyOn(notificationsService, 'sendNewProposalNotification')
+        .spyOn(notificationsService, 'sendDealCreatedNotification')
         .mockResolvedValue(undefined);
 
       const result = await dealsService.createDeal(user, dealPayload);
 
-      expect(dealsRepository.create).toHaveBeenCalledWith({
-        description: 'This is a new deal',
-        investmentAmount: 100,
-        name: 'New Deal',
-        buyers: [{ email: 'buyer@example.com', new: true }],
-        suppliers: [{ email: 'supplier@mail.com', new: true }],
-        status: DealStatus.Proposal,
-      });
+      expect(dealsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: 'This is a new deal',
+          investmentAmount: 100,
+          name: 'New Deal',
+          status: DealStatus.Confirmed,
+          buyers: expect.arrayContaining([
+            expect.objectContaining({ email: 'buyer@example.com', new: true }),
+          ]),
+          suppliers: expect.arrayContaining([
+            expect.objectContaining({ email: 'supplier@mail.com', new: true }),
+          ]),
+        }),
+      );
       expect(
-        notificationsService.sendNewProposalNotification,
+        notificationsService.sendDealCreatedNotification,
       ).toHaveBeenCalledWith(
         dealsService.selectParticipantsEmailsBasedOnUser(user, createdDeal),
         createdDeal,
@@ -174,27 +176,30 @@ describe('DealsService', () => {
       } as Deal;
 
       jest
-        .spyOn(notificationsService, 'sendInviteToSignupNotification')
-        .mockResolvedValue(undefined);
-      jest
         .spyOn(dealsRepository, 'create')
         .mockResolvedValue(createdDeal as Deal);
       jest
-        .spyOn(notificationsService, 'sendNewProposalNotification')
+        .spyOn(notificationsService, 'sendDealCreatedNotification')
         .mockResolvedValue(undefined);
 
       const result = await dealsService.createDeal(user, dealPayload);
 
-      expect(dealsRepository.create).toHaveBeenCalledWith({
-        description: 'This is a new deal',
-        investmentAmount: 100,
-        name: 'New Deal',
-        buyers: [{ email: 'buyer@example.com', new: true }],
-        suppliers: [{ email: 'supplier@example.com', new: true }],
-        status: DealStatus.Proposal,
-      });
+      expect(dealsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: 'This is a new deal',
+          investmentAmount: 100,
+          name: 'New Deal',
+          status: DealStatus.Confirmed,
+          buyers: expect.arrayContaining([
+            expect.objectContaining({ email: 'buyer@example.com', new: true }),
+          ]),
+          suppliers: expect.arrayContaining([
+            expect.objectContaining({ email: 'supplier@example.com', new: true }),
+          ]),
+        }),
+      );
       expect(
-        notificationsService.sendNewProposalNotification,
+        notificationsService.sendDealCreatedNotification,
       ).toHaveBeenCalledWith(
         dealsService.selectParticipantsEmailsBasedOnUser(user, createdDeal),
         createdDeal,
@@ -227,27 +232,30 @@ describe('DealsService', () => {
       } as Deal;
 
       jest
-        .spyOn(notificationsService, 'sendInviteToSignupNotification')
-        .mockResolvedValue(undefined);
-      jest
         .spyOn(dealsRepository, 'create')
         .mockResolvedValue(createdDeal as Deal);
       jest
-        .spyOn(notificationsService, 'sendNewProposalNotification')
+        .spyOn(notificationsService, 'sendDealCreatedNotification')
         .mockResolvedValue(undefined);
 
       const result = await dealsService.createDeal(user, dealPayload);
 
-      expect(dealsRepository.create).toHaveBeenCalledWith({
-        description: 'This is a new deal',
-        investmentAmount: 100,
-        name: 'New Deal',
-        status: DealStatus.Proposal,
-        buyers: [{ email: user.email, new: true }],
-        suppliers: [{ email: 'supplier@mail.com', new: true }],
-      });
+      expect(dealsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: 'This is a new deal',
+          investmentAmount: 100,
+          name: 'New Deal',
+          status: DealStatus.Confirmed,
+          buyers: expect.arrayContaining([
+            expect.objectContaining({ email: user.email, new: true }),
+          ]),
+          suppliers: expect.arrayContaining([
+            expect.objectContaining({ email: 'supplier@mail.com', new: true }),
+          ]),
+        }),
+      );
       expect(
-        notificationsService.sendNewProposalNotification,
+        notificationsService.sendDealCreatedNotification,
       ).toHaveBeenCalledWith(
         dealsService.selectParticipantsEmailsBasedOnUser(user, createdDeal),
         createdDeal,
@@ -280,27 +288,30 @@ describe('DealsService', () => {
       } as Deal;
 
       jest
-        .spyOn(notificationsService, 'sendInviteToSignupNotification')
-        .mockResolvedValue(undefined);
-      jest
         .spyOn(dealsRepository, 'create')
         .mockResolvedValue(createdDeal as Deal);
       jest
-        .spyOn(notificationsService, 'sendNewProposalNotification')
+        .spyOn(notificationsService, 'sendDealCreatedNotification')
         .mockResolvedValue(undefined);
 
       const result = await dealsService.createDeal(user, dealPayload);
 
-      expect(dealsRepository.create).toHaveBeenCalledWith({
-        description: 'This is a new deal',
-        investmentAmount: 100,
-        name: 'New Deal',
-        buyers: [{ email: 'buyer@example.com', new: true }],
-        suppliers: [{ email: 'supplier@example.com', new: true }],
-        status: DealStatus.Proposal,
-      });
+      expect(dealsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: 'This is a new deal',
+          investmentAmount: 100,
+          name: 'New Deal',
+          status: DealStatus.Confirmed,
+          buyers: expect.arrayContaining([
+            expect.objectContaining({ email: 'buyer@example.com', new: true }),
+          ]),
+          suppliers: expect.arrayContaining([
+            expect.objectContaining({ email: 'supplier@example.com', new: true }),
+          ]),
+        }),
+      );
       expect(
-        notificationsService.sendNewProposalNotification,
+        notificationsService.sendDealCreatedNotification,
       ).toHaveBeenCalledWith(
         dealsService.selectParticipantsEmailsBasedOnUser(user, createdDeal),
         createdDeal,

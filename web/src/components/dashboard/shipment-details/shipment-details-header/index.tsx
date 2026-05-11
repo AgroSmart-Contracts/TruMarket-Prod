@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { CheckCircle } from "@phosphor-icons/react";
 
 import { AccountTypeEnum } from "src/interfaces/global";
@@ -18,7 +18,7 @@ const ShipmentDetailsHeader: React.FC<ShipmentDetailsHeaderProps> = ({
   isPublished,
   userAccountType,
 }) => {
-  const [publishEnabled, setPublishEnabled] = React.useState(false);
+  const [publishEnabled, setPublishEnabled] = useState(false);
 
   useEffect(() => {
     // const key = localStorage.getItem("publishEnabled");

@@ -32,8 +32,6 @@ describe('List deals (e2e)', () => {
     expect(dealsReq.body[0].expectedShippingEndDate).toBeDefined();
 
     expect(dealsReq.body[0]).toMatchObject({
-      buyers: [{ approved: true }],
-      suppliers: [{ approved: true }],
       contractId: 1,
       currentMilestone: 0,
       daysLeft: -1,

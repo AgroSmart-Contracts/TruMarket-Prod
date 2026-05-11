@@ -54,7 +54,6 @@ export interface ICreateShipmentParams
 }
 
 export interface AgreementPartyInfo {
-  approved?: boolean;
   email: string;
   walletAddress: string;
   id: string;
@@ -113,12 +112,6 @@ export enum DealStatus {
   Repaid = "repaid",
   Cancelled = "cancelled",
   All = "all",
-}
-
-export interface IMilestoneStatusInfo {
-  submitToReview?: boolean;
-  approve?: boolean;
-  deny?: boolean;
 }
 
 export enum Event {

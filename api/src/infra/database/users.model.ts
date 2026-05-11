@@ -2,7 +2,6 @@ import mongoose, { Schema } from 'mongoose';
 
 import {
   AccountType,
-  BankDetails,
   RoleType,
   User,
   WalletType,
@@ -30,20 +29,6 @@ const companySchema = new Schema({
   country: String,
   taxId: String,
 });
-
-const bankDetailsSchema = new Schema<BankDetails>(
-  {
-    beneficiaryName: { type: String, required: true },
-    country: { type: String },
-    addressLine1: { type: String },
-    city: { type: String },
-    postalCode: { type: String },
-    bankName: { type: String },
-    accountNumber: { type: String },
-    swiftCode: { type: String },
-  },
-  { _id: false },
-);
 
 companySchema.set('toJSON', {
   transform: function (doc, ret) {
@@ -76,24 +61,12 @@ const UserSchema: Schema = new Schema({
     enum: RoleType,
     default: 0,
   },
-  kycVerified: {
-    type: Boolean,
-    default: false,
-  },
   createdAt: { type: Date, default: Date.now },
   desktopNotifications: {
     type: NotificationsSettingsSchema,
   },
   emailNotifications: {
     type: NotificationsSettingsSchema,
-  },
-  isBankLinked: {
-    type: Boolean,
-    default: false,
-  },
-  bankDetails: {
-    type: bankDetailsSchema,
-    required: false,
   },
   company: {
     type: companySchema,

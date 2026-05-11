@@ -38,6 +38,8 @@ export const CurrencyFormatter = (amount: number) => {
   const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   });
 
   return formatter.format(amount);
@@ -188,20 +190,6 @@ export const arrayToCommaSeparatedString = (arr: string[]) => {
 
 export const commaSeparatedStringToArray = (arr: string) => {
   return arr.split(/[\s,]+/).map((item) => item.trim());
-};
-
-export const checkIfUserConfirmedAgreement = (agreementPartyInfo: AgreementPartyInfo[], userId: string) => {
-  return agreementPartyInfo.find((user) => user.id === userId)?.approved;
-};
-
-export const checkHowManyUserApprovedAgreement = (agreementPartyInfo: AgreementPartyInfo[]) => {
-  return agreementPartyInfo?.reduce((count, item) => {
-    return count + (item.approved === true ? 1 : 0);
-  }, 0);
-};
-
-export const isApprovedByAllUser = (agreementPartyInfo: AgreementPartyInfo[]) => {
-  return agreementPartyInfo?.every((item) => item.approved === true);
 };
 
 export const getAgreementPartyEmailArray = (agreementPartyInfo: AgreementPartyInfo[]) => {

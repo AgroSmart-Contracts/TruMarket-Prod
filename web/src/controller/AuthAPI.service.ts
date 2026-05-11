@@ -4,6 +4,17 @@ import axiosInstance from "src/config/axios";
 import { DesktopNotifications, EmailNotifications, UserProfileInfo } from "src/interfaces/auth";
 
 export class AuthService {
+  static async updateCompany({
+    company,
+  }: {
+    company: { name: string; country: string; taxId: string };
+  }): Promise<UserProfileInfo> {
+    const response = await axiosInstance.put("/auth/company", {
+      company,
+    });
+    return response.data;
+  }
+
   static async requestOTPtoAccount({ email }: { email: string }): Promise<{ email: string }> {
     const response = await axios.post(`${process.env.NEXT_PUBLIC_AUTH0_API_URL}/passwordless/start`, {
       client_id: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID,
@@ -76,10 +87,11 @@ export class AuthService {
     return response.data;
   }
 
+  // Backward-compatibility endpoint (legacy). Prefer /bank-accounts endpoints.
   static async updateBankDetails({
     bankDetails,
   }: {
-    bankDetails: NonNullable<UserProfileInfo["bankDetails"]>;
+    bankDetails: any;
   }): Promise<UserProfileInfo> {
     const response = await axiosInstance.put("/auth/bank-details", {
       bankDetails,

@@ -9,7 +9,7 @@ import { AirplaneTilt } from "@phosphor-icons/react";
 import classNames from "classnames";
 import * as React from "react";
 
-import { IMilestoneDetails, ITransportType, MilestoneApprovalStatus, MilestoneEnum } from "src/interfaces/global";
+import { IMilestoneDetails, ITransportType, MilestoneEnum, MilestoneStatus } from "src/interfaces/global";
 import { milestones as MilestoneData } from "src/lib/static";
 
 import { milestoneStatusFactory } from "./milestoneStausFactoryFn";
@@ -46,13 +46,13 @@ const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
 
 function ColorlibStepIcon(
   props: StepIconProps & {
-    milestoneStatus: MilestoneApprovalStatus;
+    milestoneStatus?: MilestoneStatus;
     status: MilestoneEnum | undefined;
     icon: React.ReactElement;
     isBuyer: boolean;
     hasNewDocuments: boolean;
-    prevMilestoneStatus: MilestoneApprovalStatus;
-    nextMilestoneStatus: MilestoneApprovalStatus;
+    prevMilestoneStatus?: MilestoneStatus;
+    nextMilestoneStatus?: MilestoneStatus;
     setActive: React.Dispatch<React.SetStateAction<boolean>>;
   },
 ) {
@@ -126,12 +126,11 @@ export default function HorizontalMilestones({
               // ColorlibStepIcon expects additional props beyond MUI's StepIconProps
               // which are provided here, so the cast is safe.
               StepIconComponent={(props) => (
-                // @ts-ignore
                 <ColorlibStepIcon
                   {...props}
-                  milestoneStatus={milestones[step.milestone]?.approvalStatus}
-                  prevMilestoneStatus={milestones[step.milestone - 1]?.approvalStatus}
-                  nextMilestoneStatus={milestones[step.milestone + 1]?.approvalStatus}
+                  milestoneStatus={milestones[step.milestone]?.status}
+                  prevMilestoneStatus={milestones[step.milestone - 1]?.status}
+                  nextMilestoneStatus={milestones[step.milestone + 1]?.status}
                   icon={
                     step.milestone === MilestoneEnum.M5 && transport === ITransportType.BY_AIR ? (
                       <AirplaneTilt size={26} weight="duotone" />

@@ -1,3 +1,5 @@
+import type { BankAccount } from "./bankAccount";
+
 interface Company {
   name: string;
   country: string;
@@ -19,18 +21,7 @@ export interface UserProfileInfo {
   email: string;
   accountType: string;
   walletAddress: string;
-  kycVerified: boolean;
-  isBankLinked?: boolean;
-  bankDetails?: {
-    beneficiaryName: string;
-    country: string;
-    addressLine1?: string;
-    city?: string;
-    postalCode?: string;
-    bankName?: string;
-    accountNumber?: string;
-    swiftCode?: string;
-  };
+  bankAccounts?: BankAccount[];
   desktopNotifications: DesktopNotifications;
   emailNotifications: EmailNotifications;
   company?: Company;

@@ -85,12 +85,12 @@ export default function DealsTable({
                     </TableCell>
                     <TableCell align="center">
                       {row.suppliers.map((supplier) => (
-                        <ParticipantTag key={supplier.id} email={supplier.email} approved={supplier?.approved} />
+                        <ParticipantTag key={supplier.id} email={supplier.email} />
                       ))}
                     </TableCell>
                     <TableCell align="center">
                       {row.buyers.map((buyer) => (
-                        <ParticipantTag key={buyer.id} email={buyer.email} approved={buyer?.approved} />
+                        <ParticipantTag key={buyer.id} email={buyer.email} />
                       ))}
                     </TableCell>
                     <TableCell align="center">

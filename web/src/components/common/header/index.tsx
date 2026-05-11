@@ -12,21 +12,21 @@ import { INotification } from "src/interfaces/notifications";
 import { useUserInfo } from "src/lib/hooks/useUserInfo";
 
 const Header: React.FC = () => {
-    const router = useRouter();
-    const { logout } = useWeb3AuthContext();
-    const { userInfo } = useUserInfo();
+  const router = useRouter();
+  const { logout } = useWeb3AuthContext();
+  const { userInfo } = useUserInfo();
 
-    const { data: notifications, refetch: refetchNotifications } = useQuery({
-        queryKey: ["notifications"],
-        queryFn: () => NotificationsService.getNotificationsList(),
-        enabled: !!userInfo?.user?.email,
-        initialData: [],
-    });
+  const { data: notifications, refetch: refetchNotifications } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => NotificationsService.getNotificationsList(),
+    enabled: !!userInfo?.user?.email,
+    initialData: [],
+  });
 
-    const unreadCount = notifications?.filter((n: INotification) => !n.read).length || 0;
+  const unreadCount = notifications?.filter((n: INotification) => !n.read).length || 0;
   const isLoggedIn = !!userInfo?.user?.email;
 
-    return (
+  return (
     <header
       className="fixed top-0 w-full z-[100] bg-[#FFFFFF] border-b border-[#E2E8F0]"
       style={{
@@ -51,12 +51,12 @@ const Header: React.FC = () => {
               className="h-8 sm:h-10 lg:h-12 w-auto cursor-pointer"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             />
-                    </Link>
+          </Link>
           <div className="flex flex-col">
             <h1
               className="text-base leading-6 font-medium text-[#0F172B]"
               style={{ letterSpacing: '-0.3125px' }}
-                        >
+            >
               TruMarket
             </h1>
             <p
@@ -71,39 +71,39 @@ const Header: React.FC = () => {
         <div className="flex items-center gap-3">
           {isLoggedIn && (
             <>
-                        {/* Notifications */}
-                            <NotificationMenu notifications={notifications || []} refetch={refetchNotifications}>
+              {/* Notifications */}
+              <NotificationMenu notifications={notifications || []} refetch={refetchNotifications}>
                 <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#62748E] hover:bg-gray-50 transition-colors shadow-sm">
                   <Bell size={20} weight="bold" />
-                                    {unreadCount > 0 && (
+                  {unreadCount > 0 && (
                     <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#DC2626] px-[3px] text-[10px] font-semibold text-white">
-                                            {unreadCount > 9 ? "9+" : unreadCount}
-                                        </span>
-                                    )}
-                                </button>
-                            </NotificationMenu>
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+              </NotificationMenu>
 
               {/* User pill */}
-                            <Link
-                                href="/dashboard/account-details"
+              <Link
+                href="/dashboard/account-details"
                 className="hidden items-center gap-2 rounded-md border border-[#E2E8F0] bg-white px-3 py-1.5 text-sm font-medium text-[#0F172B] hover:bg-gray-50 md:flex transition-colors shadow-sm"
-                            >
+              >
                 <User size={18} weight="bold" />
                 <span className="max-w-[180px] truncate tracking-tight">{userInfo.user.email}</span>
-                            </Link>
+              </Link>
 
-                            {/* Logout */}
-                            <button
-                                onClick={logout}
+              {/* Logout */}
+              <button
+                onClick={logout}
                 className="rounded-md px-4 py-2 text-sm font-normal text-white shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2"
                 style={{
                   backgroundColor: "#4E8C37",
                   letterSpacing: "-0.01em",
                 }}
-                            >
+              >
                 <SignOut size={16} weight="bold" />
                 <span>Logout</span>
-                            </button>
+              </button>
             </>
           )}
 
@@ -120,10 +120,10 @@ const Header: React.FC = () => {
               <span>Login</span>
             </Link>
           )}
-                </div>
-            </div>
-        </header>
-    );
+        </div>
+      </div>
+    </header>
+  );
 };
 
 export default Header;

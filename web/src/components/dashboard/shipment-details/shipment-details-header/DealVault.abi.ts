@@ -1,4 +1,4 @@
-export default [
+const dealVaultAbi = [
   {
     "inputs": [
       {
@@ -1096,4 +1096,6 @@ export default [
     "stateMutability": "nonpayable",
     "type": "function"
   }
-]
+];
+
+export default dealVaultAbi;

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-toastify";
 import classNames from "classnames";
@@ -26,22 +26,18 @@ const AttachedDocumentsView: React.FC<AttachedDocumentsViewProps> = ({
   currentMilestoneFiles,
   milestone,
 }) => {
-  const [uploadInProgress, setUploadInProgress] = useState(false);
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop: async (acceptedFiles: File[]) => {
-      //async upload in loop
       try {
-        setUploadInProgress(true);
         for (const file of acceptedFiles) {
           await handleUploadFileToMilestone(file);
         }
       } finally {
-        setUploadInProgress(false);
         refetch();
       }
     },
 
-    onDragEnter: () => {},
+    onDragEnter: () => { },
     maxFiles: 5,
     onDropRejected(fileRejections, event) {
       const rejectReason = fileRejections[0].errors[0].code;
@@ -76,18 +72,14 @@ const AttachedDocumentsView: React.FC<AttachedDocumentsViewProps> = ({
 
   return (
     <div className="flex  flex-col justify-between rounded-bl-[4px] rounded-br-[4px]  bg-tm-white p-[20px]">
-      <div className={classNames("flex flex-wrap gap-[10px] overflow-y-scroll")}>
-        <DropZone
-          getRootProps={getRootProps}
-          getInputProps={getInputProps}
-          open={open}
-          uploadedFiles={currentMilestoneFiles}
-          uploadInProgress={uploadInProgress}
-          selectedMilestone={milestones[currentMilestone]}
-          handleChangeDocumentVisibility={handleChangeDocumentVisibility}
-        />
-      </div>
-
+      <DropZone
+        getRootProps={getRootProps}
+        getInputProps={getInputProps}
+        open={open}
+        uploadedFiles={currentMilestoneFiles}
+        selectedMilestone={milestones[currentMilestone]}
+        handleChangeDocumentVisibility={handleChangeDocumentVisibility}
+      />
       <DocumentBoxFooter
         currentMilestone={currentMilestone}
         uploadedFiles={currentMilestoneFiles}

@@ -1,83 +1,99 @@
 import React from 'react';
+
 import type { UserProfileInfo } from 'src/interfaces/auth';
+import type { BankAccount } from 'src/interfaces/bankAccount';
 
 interface StepConfirmBankProps {
   supplierProfile: UserProfileInfo | null;
+  onUseDifferentBank?: () => void;
 }
 
-export const StepConfirmBank: React.FC<StepConfirmBankProps> = ({ supplierProfile }) => {
-  if (!supplierProfile?.bankDetails) {
+export const StepConfirmBank: React.FC<StepConfirmBankProps> = ({
+  supplierProfile,
+  onUseDifferentBank,
+}) => {
+  const bestAccount: BankAccount | undefined =
+    supplierProfile?.bankAccounts?.find((a) => a.status === 'ACTIVE' && a.isDefault) ||
+    supplierProfile?.bankAccounts?.find((a) => a.status === 'ACTIVE') ||
+    supplierProfile?.bankAccounts?.[0];
+
+  if (!bestAccount) {
     return (
       <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4">
-        <p className="text-sm text-yellow-800">Supplier has not provided bank account details.</p>
+        <p className="text-sm text-yellow-800">We could not read a linked supplier bank account.</p>
+        {onUseDifferentBank ? (
+          <button
+            type="button"
+            onClick={onUseDifferentBank}
+            className="mt-3 text-sm font-semibold text-[#4E8C37] hover:underline"
+          >
+            Enter bank details manually
+          </button>
+        ) : null}
       </div>
     );
   }
 
-  const { bankDetails } = supplierProfile;
-  const isLinked = supplierProfile.isBankLinked ?? !!bankDetails;
-
   return (
     <div className="space-y-4">
-      <p className="mb-4 text-sm text-slate-600">
-        Please review and confirm the supplier&apos;s bank account details.
-      </p>
-
-      <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-slate-50 p-4">
-        <h3 className="mb-3 font-semibold text-slate-900">Supplier Bank Details</h3>
+      <div className="space-y-3 rounded-2xl border border-[#E5E7EB] bg-slate-50 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">Supplier bank details</h3>
+            <p className="mt-0.5 text-xs text-slate-600">
+              Use existing linked bank details or collect them here when missing.
+            </p>
+          </div>
+          {onUseDifferentBank ? (
+            <button
+              type="button"
+              onClick={onUseDifferentBank}
+              className="text-xs font-semibold text-[#4E8C37] hover:underline"
+            >
+              Enter different bank
+            </button>
+          ) : null}
+        </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-slate-500">Beneficiary Name</p>
-            <p className="font-medium text-slate-900">{bankDetails.beneficiaryName}</p>
+            <p className="text-slate-500">Account holder name</p>
+            <p className="font-medium text-slate-900">{bestAccount.accountHolderName}</p>
           </div>
           <div>
             <p className="text-slate-500">Country</p>
-            <p className="font-medium text-slate-900">{bankDetails.country}</p>
+            <p className="font-medium text-slate-900">{bestAccount.countryCode}</p>
           </div>
-          {bankDetails.bankName && (
+          {bestAccount.bankName && (
             <div>
               <p className="text-slate-500">Bank Name</p>
-              <p className="font-medium text-slate-900">{bankDetails.bankName}</p>
+              <p className="font-medium text-slate-900">{bestAccount.bankName}</p>
             </div>
           )}
-          {bankDetails.accountNumber && (
-            <div>
-              <p className="text-slate-500">Account Number</p>
-              <p className="font-medium text-slate-900">{bankDetails.accountNumber}</p>
-            </div>
-          )}
-          {bankDetails.swiftCode && (
+          <div className="col-span-2 sm:col-span-1">
+            <p className="text-slate-500">Account number</p>
+            <p className="font-medium text-slate-900">•••• {bestAccount.accountLast4}</p>
+          </div>
+          {bestAccount.swiftBic && (
             <div>
               <p className="text-slate-500">SWIFT/BIC</p>
-              <p className="font-medium text-slate-900">{bankDetails.swiftCode}</p>
+              <p className="font-medium text-slate-900">{bestAccount.swiftBic}</p>
             </div>
           )}
-          {bankDetails.addressLine1 && (
+          {bestAccount.accountHolderAddress && (
             <div className="col-span-2">
               <p className="text-slate-500">Address</p>
               <p className="font-medium text-slate-900">
-                {bankDetails.addressLine1}
-                {bankDetails.city && `, ${bankDetails.city}`}
-                {bankDetails.postalCode && ` ${bankDetails.postalCode}`}
+                {bestAccount.accountHolderAddress}
               </p>
             </div>
           )}
         </div>
 
-        <div className="mt-4 border-t border-[#E5E7EB] pt-4">
-          <div className="flex items-center gap-2 text-sm">
-            <div
-              className={`h-3 w-3 rounded-full ${
-                isLinked ? 'bg-[#4E8C37]' : 'bg-red-500'
-              }`}
-            />
-            <span
-              className={isLinked ? 'text-[#4E8C37]' : 'text-red-700'}
-            >
-              Bank Account Status: {isLinked ? 'Linked' : 'Not Linked'}
-            </span>
-          </div>
+        <div className="mt-2">
+          <span className="inline-flex rounded-full bg-[#4E8C3714] px-3 py-1 text-xs font-medium text-[#4E8C37]">
+            Linked bank found — confirm or use a different account above
+          </span>
         </div>
       </div>
     </div>

@@ -3,38 +3,29 @@ import Step, { stepClasses } from "@mui/material/Step";
 import { StepIconProps } from "@mui/material/StepIcon";
 import StepLabel, { stepLabelClasses } from "@mui/material/StepLabel";
 import Stepper from "@mui/material/Stepper";
-import { AirplaneTilt, CheckCircle } from "@phosphor-icons/react";
+import { AirplaneTilt } from "@phosphor-icons/react";
 import classNames from "classnames";
 import * as React from "react";
 
-import { IMilestoneDetails, ITransportType, MilestoneApprovalStatus, MilestoneEnum } from "src/interfaces/global";
+import { IMilestoneDetails, ITransportType, MilestoneEnum, MilestoneStatus } from "src/interfaces/global";
 import { milestones } from "src/lib/static";
 
 import { milestoneStatusFactory } from "./milestoneStatusFactoryFn";
 import { ColorlibConnector } from "./mui-custom";
 
-export const milestoneTwClasses: any = {
-  [MilestoneApprovalStatus.Submitted]: "bg-tm-blue after:border-l-tm-blue",
-  [MilestoneApprovalStatus.Approved]: "bg-tm-green after:border-l-tm-green",
-  [MilestoneApprovalStatus.Denied]: "bg-tm-red after:border-l-tm-red",
-  [MilestoneApprovalStatus.Pending]: "bg-tm-black-80",
-};
-
 function ColorlibStepIcon(
   props: StepIconProps & {
-    milestoneStatus?: MilestoneApprovalStatus;
+    milestoneStatus?: MilestoneStatus;
     documentCount: number;
     customIcon: React.ReactElement;
     isBuyer: boolean;
     label: string;
   },
 ) {
-  const { active, completed, className, icon, customIcon, isBuyer, milestoneStatus, label } = props;
+  const { active, customIcon, isBuyer, label } = props;
 
-  const milestoneIconStyles = milestoneStatusFactory(isBuyer, active, milestoneStatus);
-  const extendedCustomIcon =
-    milestoneStatus === MilestoneApprovalStatus.Approved ? <CheckCircle weight="duotone" /> : customIcon;
-  const IconWithStyle = React.cloneElement(extendedCustomIcon, {
+  const milestoneIconStyles = milestoneStatusFactory(isBuyer, active, props.milestoneStatus);
+  const IconWithStyle = React.cloneElement(customIcon, {
     className: classNames("opacity-30 !h-[26px] !w-[26px]", milestoneIconStyles?.iconClass),
   });
 
@@ -119,10 +110,9 @@ export default function ShipmentMilestoneStatus({
             <StepLabel
               onClick={() => handleSelectMilestone(milestone.milestone)}
               StepIconComponent={(props) => (
-                // @ts-ignore
                 <ColorlibStepIcon
                   {...props}
-                  milestoneStatus={milestoneInfo?.[milestone.milestone]?.approvalStatus}
+                  milestoneStatus={milestoneInfo?.[milestone.milestone]?.status}
                   documentCount={milestoneInfo?.[i]?.docs?.length as number}
                   label={milestone.label}
                   customIcon={

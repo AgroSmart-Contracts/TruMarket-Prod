@@ -1,75 +1,99 @@
-//@ts-nocheck
+import type { StylesConfig } from "react-select";
 
 import { ValidationStates } from "src/interfaces/global";
+
+/** TruMarket chrome: matches `tmFormControl*` inputs (rounded-xl, slate border, green focus). */
+const TM_BORDER_DEFAULT = "#E5E7EB";
+const TM_BORDER_FOCUS = "#4E8C37";
+const TM_TEXT = "#0f172a";
+const TM_ERROR = "#F25E6B";
 
 export const SelectDropDownStyles = (
   inputHeight?: number | string,
   dropDownPositionL?: number,
   dropDownPositionT?: number,
-  validationState: ValidationStates | string,
+  validationState: ValidationStates | string = ValidationStates.SUCCESS,
   disableBorderRight?: boolean,
   lowerCase?: boolean,
-) => {
+): StylesConfig => {
   const hasError = validationState === ValidationStates.ERROR;
 
   return {
     control: (baseStyles, state) => ({
       ...baseStyles,
       outline: "none",
-      height: inputHeight || "36px",
+      minHeight: inputHeight || "42px",
+      height: inputHeight || "42px",
       border: "none",
-      borderRadius: "4px",
+      borderRadius: disableBorderRight ? "12px 0 0 12px" : "12px",
       boxShadow: "none",
       backgroundColor: "transparent",
-      // minWidth: 200,
+      cursor: "pointer",
     }),
     container: (baseStyles, state) => ({
       ...baseStyles,
       outline: "none",
-      border: hasError ? "2px solid #FA2020" : "1px solid #00000033",
-      borderRadius: disableBorderRight ? "4px 0 0 4px" : "4px",
+      border: hasError
+        ? `2px solid ${TM_ERROR}`
+        : state.isFocused
+          ? `1px solid ${TM_BORDER_FOCUS}`
+          : `1px solid ${TM_BORDER_DEFAULT}`,
+      borderRadius: disableBorderRight ? "12px 0 0 12px" : "12px",
+      boxShadow: state.isFocused && !hasError ? `0 0 0 1px ${TM_BORDER_FOCUS}26` : "none",
+      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
     }),
-    valueContainer: (baseStyles, state) => ({
+    valueContainer: (baseStyles) => ({
       ...baseStyles,
-      fontSize: 13,
-      lineHeight: 0,
-      textTransform: lowerCase ? "lowercase" : "capitalize",
+      fontSize: 14,
+      lineHeight: 1.25,
+      padding: "10px 16px",
+      textTransform: lowerCase ? "lowercase" : "none",
     }),
-    placeholder: (baseStyles, state) => ({
+    placeholder: (baseStyles) => ({
       ...baseStyles,
-      color: "#2D3E57",
-      opacity: 0.5,
-      fontWeight: 200,
+      color: TM_TEXT,
+      opacity: 0.45,
+      fontWeight: 400,
+      margin: 0,
     }),
 
-    input: (baseStyles, state) => ({
+    input: (baseStyles) => ({
       ...baseStyles,
       outline: "none",
-      color: "#2D3E57",
+      color: TM_TEXT,
+      margin: 0,
+      padding: 0,
     }),
 
-    singleValue: (baseStyles, state) => ({
+    singleValue: (baseStyles) => ({
       ...baseStyles,
       overflow: "unset",
-      color: "#2D3E57",
-      textTransform: "capitalize",
+      color: TM_TEXT,
+      fontWeight: 500,
     }),
 
-    menu: (baseStyles, state) => ({
+    menu: (baseStyles) => ({
       ...baseStyles,
-      left: dropDownPositionL || -2,
-      top: dropDownPositionT || 35,
+      ...(typeof dropDownPositionL === "number" ? { left: dropDownPositionL } : {}),
+      ...(typeof dropDownPositionT === "number" ? { top: dropDownPositionT } : {}),
       zIndex: 999,
+      marginTop: 4,
+      borderRadius: 12,
+      border: `1px solid ${TM_BORDER_DEFAULT}`,
+      overflow: "hidden",
+      boxShadow: "0 10px 30px rgba(15,23,42,0.08)",
     }),
-    option: (baseStyles, { isFocused }) => ({
+    menuList: (base) => ({
+      ...base,
+      padding: 4,
+    }),
+    option: (baseStyles, { isFocused, isSelected }) => ({
       ...baseStyles,
-      "&:hover": {
-        backgroundColor: "#2D3E57",
-        color: "#ffffff",
-      },
       cursor: "pointer",
-      backgroundColor: isFocused ? "#2D3E57" : "#ffffff",
-      color: isFocused ? "#ffffff" : "#495057",
+      borderRadius: 8,
+      fontSize: 14,
+      backgroundColor: isSelected ? TM_BORDER_FOCUS : isFocused ? "rgba(78,140,55,0.08)" : "#ffffff",
+      color: isSelected ? "#ffffff" : TM_TEXT,
     }),
     indicatorsContainer: (baseStyles) => ({
       ...baseStyles,
@@ -80,18 +104,20 @@ export const SelectDropDownStyles = (
       ...baseStyles,
       padding: "0",
       cursor: "pointer",
-      color: "#2D3E57",
+      color: TM_TEXT,
       "&:hover": {
-        color: "#2D3E57",
+        color: TM_BORDER_FOCUS,
       },
     }),
     dropdownIndicator: (baseStyles) => ({
       ...baseStyles,
-      padding: "0 5px 0 0",
+      padding: "0 10px 0 0",
       cursor: "pointer",
-      color: "#2D3E57",
+      color: TM_TEXT,
+      opacity: 0.55,
       "&:hover": {
-        color: "#2D3E57",
+        color: TM_BORDER_FOCUS,
+        opacity: 1,
       },
     }),
     multiValue: (baseStyles) => ({

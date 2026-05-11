@@ -65,8 +65,7 @@ export default function VerticalLinearStepper({ steps, selectedIndex }: { steps:
           >
             <StepLabel
               sx={stepLabelStyles}
-              StepIconComponent={(props) => (
-                // @ts-ignore
+              StepIconComponent={(props: StepIconProps) => (
                 <ColorlibStepIcon {...props} totalSteps={steps.length} label={step.label} />
               )}
             >

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Tab } from "@headlessui/react";
 import classNames from "classnames";
 import { useRouter } from "next/router";
@@ -13,10 +13,9 @@ import { useUserInfo } from "src/lib/hooks/useUserInfo";
 import ActiveShipmentTabView from "./active-shipment-tab-view";
 import AllShipments from "./all-shipments";
 import FinishedShipmentTabView from "./finished-shipment-tab-view";
-import PendingShipmentTabView from "./pending-shipment-tab-view";
 import ShipmentTabHeaders from "./shipment-tab-header";
 
-interface TabViewProps { }
+interface TabViewProps {}
 
 const ShipmentTabView: React.FC<TabViewProps> = () => {
   const router = useRouter();
@@ -24,22 +23,9 @@ const ShipmentTabView: React.FC<TabViewProps> = () => {
   const { accountType } = useUserInfo();
   const isBuyer = accountType === AccountTypeEnum.BUYER;
 
-  // const dealStatus = {
-  //   0: DealStatus.Confirmed,
-  //   1: DealStatus.Proposal,
-  //   2: DealStatus.Finished,
-  // };
-
-  //!! TODO it should be converted to single API call after there will be endpoint to fetch `Count` for each status
   const { data: confirmedShipmentList, isLoading: isConfirmedShipmentListLoading } = useQuery({
     queryKey: ["get-confirmed-shipments"],
     queryFn: () => ShipmentService.getShipments(DealStatus.Confirmed),
-    initialData: [],
-  });
-
-  const { data: pendingShipmentList, isLoading: isPendingShipmentListLoading } = useQuery({
-    queryKey: ["get-pending-shipments"],
-    queryFn: () => ShipmentService.getShipments(DealStatus.Proposal),
     initialData: [],
   });
 
@@ -49,8 +35,7 @@ const ShipmentTabView: React.FC<TabViewProps> = () => {
     initialData: [],
   });
 
-  const dataLength =
-    Number(confirmedShipmentList?.length) + Number(pendingShipmentList?.length) + Number(finishedShipmentList?.length);
+  const dataLength = Number(confirmedShipmentList?.length) + Number(finishedShipmentList?.length);
 
   return (
     <div className="space-y-6">
@@ -71,7 +56,7 @@ const ShipmentTabView: React.FC<TabViewProps> = () => {
         </div>
       </div>
 
-      {/* Shipments Tabs */}
+      {/* Shipments Tabs: All | Active (confirmed) | Finished */}
       <Tab.Group defaultIndex={1} selectedIndex={selectedIndex} onChange={setSelectedIndex}>
         <Tab.List>
           <div className="flex items-center justify-between">
@@ -79,7 +64,6 @@ const ShipmentTabView: React.FC<TabViewProps> = () => {
               <ShipmentTabHeaders
                 all={dataLength || 0}
                 active={confirmedShipmentList?.length || 0}
-                pending={pendingShipmentList?.length || 0}
                 finished={finishedShipmentList?.length || 0}
               />
             </div>
@@ -89,16 +73,13 @@ const ShipmentTabView: React.FC<TabViewProps> = () => {
           <Tab.Panel className={classNames("rounded-[4px]  rounded-br-[4px] bg-[#ffffff80]  p-[20px]")}>
             <AllShipments
               isBuyer={isBuyer}
-              shipmentData={[...confirmedShipmentList, ...pendingShipmentList, ...finishedShipmentList]}
+              shipmentData={[...confirmedShipmentList, ...finishedShipmentList]}
               status={DealStatus.All}
-              loading={isConfirmedShipmentListLoading || isPendingShipmentListLoading || isFinishedShipmentListLoading}
+              loading={isConfirmedShipmentListLoading || isFinishedShipmentListLoading}
             />
           </Tab.Panel>
           <Tab.Panel className={classNames("rounded-[4px]  rounded-br-[4px] bg-[#ffffff80]  p-[20px]")}>
             <ActiveShipmentTabView isBuyer={isBuyer} shipmentData={confirmedShipmentList} status={DealStatus.Confirmed} />
-          </Tab.Panel>
-          <Tab.Panel className={classNames("rounded-[4px]  rounded-br-[4px]  bg-[#ffffff80]  p-[20px]")}>
-            <PendingShipmentTabView isBuyer={isBuyer} shipmentData={pendingShipmentList} status={DealStatus.Proposal} />
           </Tab.Panel>
           <Tab.Panel className={classNames("rounded-[4px]  rounded-br-[4px] bg-[#ffffff80]  p-[20px]")}>
             <FinishedShipmentTabView isBuyer={isBuyer} shipmentData={finishedShipmentList} status={DealStatus.Finished} />

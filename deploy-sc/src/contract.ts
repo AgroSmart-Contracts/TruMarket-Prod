@@ -9,6 +9,11 @@ export const DealsManagerContract = {
           "internalType": "address",
           "name": "initialOwner_",
           "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "underlying_",
+          "type": "address"
         }
       ],
       "stateMutability": "nonpayable",

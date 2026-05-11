@@ -21,7 +21,7 @@ const initialState: PreviewModalContent = {
   },
 };
 
-export const previewModalContentSlice = createSlice({
+const previewModalContentSlice = createSlice({
   name: "previewModalContent",
   initialState,
   reducers: {

@@ -1,11 +1,13 @@
 import React from "react";
 import classNames from "classnames";
 import { Control, Controller, FieldErrors, UseFormSetValue } from "react-hook-form";
-import { CheckBox } from "../checkbox";
+
 import { useModal } from "src/context/modal-context";
 import { AuthTMModalView } from "src/pages";
 import { useAppDispatch, useAppSelector } from "src/lib/hooks";
 import { selectIsTermsAndConditionsChecked, setTermsAndConditionsChecked } from "src/store/UiSlice";
+
+import { CheckBox } from "../checkbox";
 
 interface TermsCheckboxProps {
     control: Control<any>;

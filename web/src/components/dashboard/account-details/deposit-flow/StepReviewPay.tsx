@@ -1,132 +1,143 @@
-import React, { useState } from 'react';
+import React from 'react';
+
+import { CurrencyFormatter } from 'src/lib/helpers';
+import type { BankAccount } from 'src/interfaces/bankAccount';
+import type { OsnFeeQuoteData } from 'src/interfaces/osnFeeQuote';
+
+import { DepositFlowInfoNote } from './DepositFlowInfoNote';
 import type { PaymentDraft } from './deposit-types';
+import { getBuyerFeePolicy, getBuyerPayableTotal, getUserVisibleTruMarketFee } from './fee-display';
 
 interface StepReviewPayProps {
   draft: PaymentDraft;
+  quote: OsnFeeQuoteData | null;
+  quoteKey: string;
+  fetchedKey: string | null;
+  feeError?: string | null;
 }
 
-export const StepReviewPay: React.FC<StepReviewPayProps> = ({ draft }) => {
-  const [showBankDetails, setShowBankDetails] = useState(false);
-  const bankDetails = draft.supplierProfile?.bankDetails || draft.recipientBankDetails;
+const fmt = (n: number, currency: string) => {
+  const formatted = CurrencyFormatter(n).replace('$', '').trim();
+  return `${currency} ${formatted}`;
+};
+
+function isOnrampFeeInactiveError(message: string | null): boolean {
+  if (!message) return false;
+  return /not marked active/i.test(message);
+}
+
+export const StepReviewPay: React.FC<StepReviewPayProps> = ({
+  draft,
+  quote,
+  quoteKey,
+  fetchedKey,
+  feeError = null,
+}) => {
+  const supplierAccount: BankAccount | undefined =
+    draft.supplierProfile?.bankAccounts?.find((a) => a.isDefault) ||
+    draft.supplierProfile?.bankAccounts?.find((a) => a.status === 'ACTIVE') ||
+    draft.supplierProfile?.bankAccounts?.[0];
+
+  const manualBank = draft.recipientBankDetails;
+  const bankSummary = supplierAccount
+    ? {
+      beneficiary: supplierAccount.accountHolderName,
+      bank: supplierAccount.bankName,
+      account: `••••${supplierAccount.accountLast4}`,
+    }
+    : manualBank
+      ? {
+        beneficiary: manualBank.accountHolderName || '—',
+        bank: manualBank.bankName || '—',
+        account: manualBank.accountNumber || '—',
+      }
+      : null;
+
+  const amt = Number((draft.amount || '0').toString().replace(/,/g, ''));
+  const quoteFresh = quote && fetchedKey === quoteKey;
+  const freeTrialFees = !quoteFresh && isOnrampFeeInactiveError(feeError);
 
   return (
     <div className="space-y-4">
-      <p className="mb-4 text-sm text-slate-600">
-        Review all payment details before proceeding.
-      </p>
-
-      <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-slate-50 p-4">
-        <h3 className="mb-3 font-semibold text-slate-900">Payment Summary</h3>
-
+      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <h3 className="mb-3 text-sm font-semibold text-slate-900">Payment summary</h3>
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-slate-500">Recipient Email:</span>
-            <span className="font-medium text-slate-900">{draft.recipientEmail}</span>
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-500">Recipient email</span>
+            <span className="text-right font-medium text-slate-900">{draft.recipientEmail}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Amount:</span>
-            <span className="font-medium text-slate-900">
-              {draft.currency} {draft.amount}
-            </span>
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-500">Payment amount</span>
+            <span className="font-bold text-slate-900">{fmt(amt, draft.currency)}</span>
           </div>
-          {draft.invoiceNumber && (
-            <div className="flex justify-between">
-              <span className="text-slate-500">Invoice Number:</span>
-              <span className="font-medium text-slate-900">{draft.invoiceNumber}</span>
-            </div>
-          )}
-          {draft.description && (
-            <div className="flex justify-between">
-              <span className="text-slate-500">Description:</span>
-              <span className="font-medium text-slate-900">{draft.description}</span>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Bank Details (collapsible) */}
-      {bankDetails && (
-        <div className="space-y-4 rounded-2xl border border-[#E5E7EB] p-4">
-          <button
-            type="button"
-            onClick={() => setShowBankDetails(!showBankDetails)}
-            className="flex w-full items-center justify-between text-left"
-          >
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-slate-800">Bank Details Confirmed</span>
-              <span className="text-xs font-medium text-slate-500">
-                {bankDetails.beneficiaryName} - {bankDetails.country}
-              </span>
-            </div>
-            <span className="text-xl font-semibold text-slate-500">{showBankDetails ? '−' : '+'}</span>
-          </button>
-
-          {showBankDetails && (
-            <div className="space-y-3 pt-2">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-slate-500">Beneficiary Name</p>
-                  <p className="font-medium text-slate-900">{bankDetails.beneficiaryName}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">Country</p>
-                  <p className="font-medium text-slate-900">{bankDetails.country}</p>
-                </div>
-                {bankDetails.bankName && (
-                  <div>
-                    <p className="text-slate-500">Bank Name</p>
-                    <p className="font-medium text-slate-900">{bankDetails.bankName}</p>
-                  </div>
-                )}
-                {bankDetails.accountNumber && (
-                  <div>
-                    <p className="text-slate-500">Account Number</p>
-                    <p className="font-medium text-slate-900">{bankDetails.accountNumber}</p>
-                  </div>
-                )}
-                {bankDetails.swiftCode && (
-                  <div>
-                    <p className="text-slate-500">SWIFT/BIC</p>
-                    <p className="font-medium text-slate-900">{bankDetails.swiftCode}</p>
-                  </div>
-                )}
-                {bankDetails.addressLine1 && (
-                  <div className="col-span-2">
-                    <p className="text-slate-500">Address</p>
-                    <p className="font-medium text-slate-900">
-                      {bankDetails.addressLine1}
-                      {bankDetails.city && `, ${bankDetails.city}`}
-                      {bankDetails.postalCode && ` ${bankDetails.postalCode}`}
-                    </p>
-                  </div>
-                )}
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-2xl border border-[#E5E7EB] bg-slate-50 p-4">
+          <h3 className="mb-2 text-sm font-semibold text-slate-900">Supplier bank confirmed</h3>
+          {bankSummary ? (
+            <div className="space-y-2 text-sm">
+              <div>
+                <p className="text-slate-500">Beneficiary</p>
+                <p className="font-medium text-slate-900">{bankSummary.beneficiary}</p>
+              </div>
+              <div>
+                <p className="text-slate-500">Bank</p>
+                <p className="font-medium text-slate-900">
+                  {bankSummary.bank} · {bankSummary.account}
+                </p>
               </div>
             </div>
+          ) : (
+            <p className="text-sm text-slate-600">No bank details</p>
           )}
         </div>
-      )}
 
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 rounded-xl bg-[#4E8C3720] p-2 text-[#4E8C37]">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
-              <path
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 11V8m0 8h.01M5.5 12a6.5 6.5 0 1 0 13 0a6.5 6.5 0 0 0-13 0Z"
-              />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-900">Escrow protection</p>
-            <p className="mt-1 text-sm text-slate-600">
-              Funds will be held securely until the recipient confirms shipment.
-            </p>
-          </div>
+        <div className="rounded-2xl border border-[#E5E7EB] bg-slate-50 p-4">
+          <h3 className="mb-2 text-sm font-semibold text-slate-900">Fees confirmed</h3>
+          {quoteFresh && quote ? (
+            (() => {
+              const feePolicy = getBuyerFeePolicy(quote.buyerFeePercent);
+              const userVisibleTmFee = getUserVisibleTruMarketFee(quote);
+              const buyerTotal = getBuyerPayableTotal(quote);
+              const feePolicyText =
+                feePolicy === 'supplier'
+                  ? 'Supplier pays TruMarket fee'
+                  : feePolicy === 'shared'
+                    ? 'TruMarket fee is shared'
+                    : feePolicy === 'buyer'
+                      ? 'Buyer pays TruMarket fee in full'
+                      : `Buyer pays ${quote.buyerFeePercent}% of TruMarket fee`;
+
+              return (
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">TruMarket fee</span>
+                    <span className="font-medium text-[#4E8C37]">{fmt(userVisibleTmFee, quote.currency)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-slate-600">
+                    <span>Fee policy</span>
+                    <span>{feePolicyText}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-[#E5E7EB] pt-2">
+                    <span className="font-medium text-slate-800">Total you pay</span>
+                    <span className="font-bold text-[#4E8C37]">{fmt(buyerTotal, quote.currency)}</span>
+                  </div>
+                </div>
+              );
+            })()
+          ) : freeTrialFees ? (
+            <p className="text-sm text-[#4E8C37]">Fees are waived during free trial for this payment.</p>
+          ) : (
+            <p className="text-sm text-amber-800">Fee details are not available. Go back to the fees step.</p>
+          )}
         </div>
       </div>
+
+      <DepositFlowInfoNote>
+        After you create the payment request, the supplier can upload payment documents for admin verification.
+      </DepositFlowInfoNote>
     </div>
   );
 };
-

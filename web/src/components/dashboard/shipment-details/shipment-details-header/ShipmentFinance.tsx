@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Contract, ethers, formatEther, formatUnits, parseUnits } from "ethers";
 import { Card } from "@mui/material";
-import { Info } from "@phosphor-icons/react";
+import { Info, CaretDown } from "@phosphor-icons/react";
 
 import { useWeb3AuthContext } from "src/context/web3-auth-context";
 import { useUserInfo } from "src/lib/hooks/useUserInfo";
@@ -53,6 +53,7 @@ const ShipmentFinance: React.FC<ShipmentFinanceProps> = ({
   const [vault, setVault] = useState<Contract | null>(null);
   const [erc20, setErc20] = useState<Contract | null>(null);
   const [repayFunds, setRepayFunds] = useState<number>(Math.floor(requestFundAmount * 1.1));
+  const [showVaultDetails, setShowVaultDetails] = useState<boolean>(false);
 
   useEffect(() => {
     if (!vaultAddress) return;
@@ -112,49 +113,77 @@ const ShipmentFinance: React.FC<ShipmentFinanceProps> = ({
     fetchFinanceData();
   };
 
-  const progressPercentage = (+amountFunded / +requestFundAmount) * 100;
-
   return (
-    <Card className="bg-white w-full p-4 sm:p-6">
-      <div className="mb-6 sm:mb-8 space-y-3 sm:space-y-4 border-b pb-4">
-        <div className="text-gray-600 flex items-center gap-2">
-          <span className="text-xs sm:text-sm">Total pool assets</span>
-        </div>
-        <div className="text-gray-900 text-2xl sm:text-3xl font-semibold">
-          {erc20Symbol} {(+amountFunded).toFixed(2)}
-        </div>
-        {/* Progress bar */}
-        <div>
-          <div className="text-gray-600 mb-1 flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0 text-xs sm:text-sm">
-            <span>{progressPercentage.toFixed(1)}% filled</span>
-            <span className="sm:text-right">
-              Target: {erc20Symbol} {requestFundAmount.toFixed(2)}
-            </span>
-          </div>
-          <div className="bg-gray-200 h-2 w-full overflow-hidden rounded-full">
-            <div
-              className="h-full rounded-full bg-[#2D3E57] transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Vault Address */}
-      <div className="bg-gray-50 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 rounded-lg p-3">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-700 font-medium text-sm sm:text-base">Vault Address</span>
-        </div>
-        <a
-          href={`${process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER}/token/${vaultAddress}`}
-          target="_blank"
-          rel="noreferrer"
-          className="bg-gray-100 rounded px-2 sm:px-3 py-1 font-mono text-xs sm:text-sm break-all sm:break-normal text-center sm:text-left hover:bg-gray-200 transition-colors"
-          title={vaultAddress}
+    <Card className="bg-[#FFFFFF] w-full p-4 sm:p-6 border border-[#E2E8F0] shadow-[0_10px_25px_rgba(15,23,42,0.08)]" elevation={0}>
+      {/* Vault Details - Collapsible Section */}
+      <div className="rounded-2xl border border-[#E5E7EB] bg-white transition-all duration-200 hover:border-[#D1D5DB]">
+        <button
+          type="button"
+          onClick={() => setShowVaultDetails(!showVaultDetails)}
+          className="flex w-full items-center justify-between p-4 text-left transition-colors duration-200 hover:bg-[#F9FAFB] rounded-2xl"
         >
-          <span className="hidden sm:inline">{truncateAddress(vaultAddress)}</span>
-          <span className="sm:hidden">{`${vaultAddress.slice(0, 10)}...${vaultAddress.slice(-4)}`}</span>
-        </a>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium text-gray-900">Vault details</span>
+            <span className="text-xs text-gray-600">Address, borrower, and balance information</span>
+          </div>
+          <CaretDown
+            size={20}
+            weight="bold"
+            className={`text-gray-600 transition-transform duration-300 ease-in-out flex-shrink-0 ${showVaultDetails ? "rotate-180" : "rotate-0"
+              }`}
+          />
+        </button>
+
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${showVaultDetails ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+        >
+          <div className="px-4 pb-4 space-y-2.5 pt-1">
+            {/* Vault Address */}
+            <div className="flex flex-col gap-1.5 py-2.5 px-3 rounded-lg hover:bg-[#F9FAFB] transition-colors duration-150">
+              <span className="text-xs sm:text-sm text-gray-600 font-medium">Vault Address</span>
+              <a
+                href={`${process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER}/token/${vaultAddress}`}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-xs sm:text-sm text-gray-900 hover:text-[#4E8C37] transition-colors duration-150 break-all group"
+                title={vaultAddress}
+              >
+                <span className="group-hover:underline">{truncateAddress(vaultAddress)}</span>
+              </a>
+            </div>
+
+            {borrowerAddress &&
+              userInfo &&
+              userInfo.user &&
+              userInfo.user.walletAddress &&
+              borrowerAddress.toLowerCase() === userInfo.user.walletAddress.toLowerCase() && (
+                <>
+                  {/* User Address */}
+                  <div className="flex flex-col gap-1.5 py-2.5 px-3 rounded-lg hover:bg-[#F9FAFB] transition-colors duration-150">
+                    <span className="text-xs sm:text-sm text-gray-600 font-medium">Borrower</span>
+                    <a
+                      href={`${process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER}/address/${userInfo.user.walletAddress}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-mono text-xs sm:text-sm text-gray-900 hover:text-[#4E8C37] transition-colors duration-150 break-all group"
+                      title={userInfo.user.walletAddress}
+                    >
+                      <span className="group-hover:underline">{truncateAddress(userInfo.user.walletAddress)}</span>
+                    </a>
+                  </div>
+
+                  {/* Balance */}
+                  <div className="flex flex-col gap-1.5 py-2.5 px-3 rounded-lg hover:bg-[#F9FAFB] transition-colors duration-150">
+                    <span className="text-xs sm:text-sm text-gray-600 font-medium">Borrower Balance</span>
+                    <span className="font-mono text-xs sm:text-sm text-gray-900 font-medium">
+                      {balance} {erc20Symbol}
+                    </span>
+                  </div>
+                </>
+              )}
+          </div>
+        </div>
       </div>
 
       {borrowerAddress &&
@@ -163,35 +192,9 @@ const ShipmentFinance: React.FC<ShipmentFinanceProps> = ({
         userInfo.user.walletAddress &&
         borrowerAddress.toLowerCase() === userInfo.user.walletAddress.toLowerCase() && (
           <>
-            {/* User Address */}
-            <div className="bg-gray-50 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-700 font-medium text-sm sm:text-base">Borrower</span>
-              </div>
-              <a
-                href={`${process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER}/address/${userInfo.user.walletAddress}`}
-                target="_blank"
-                rel="noreferrer"
-                className="bg-gray-100 rounded px-2 sm:px-3 py-1 font-mono text-xs sm:text-sm break-all sm:break-normal text-center sm:text-left hover:bg-gray-200 transition-colors"
-                title={userInfo.user.walletAddress}
-              >
-                <span className="hidden sm:inline">{truncateAddress(userInfo.user.walletAddress)}</span>
-                <span className="sm:hidden">{`${userInfo.user.walletAddress.slice(0, 10)}...${userInfo.user.walletAddress.slice(-4)}`}</span>
-              </a>
-            </div>
-
-            {/* Balance */}
-            <div className="bg-gray-50 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-700 font-medium text-sm sm:text-base">Borrower Balance</span>
-              </div>
-              <span className="text-blue-600 font-mono font-medium text-sm sm:text-base text-center sm:text-right">
-                {balance} {erc20Symbol}
-              </span>
-            </div>
 
             {shipmentStatus === DealStatus.Finished && vault !== null && (
-              <div className="bg-tm-green-light">
+              <div className="mt-4">
                 <div className="bg-blue-100 border-blue-500 text-blue-700 mb-4 border-l-4 p-3 sm:p-4" role="alert">
                   <Info size={16} className="mb-1" />
                   {+amountFunded < repayFunds && (

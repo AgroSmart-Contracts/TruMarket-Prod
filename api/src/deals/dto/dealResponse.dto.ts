@@ -26,10 +26,6 @@ export class ParticipantDTO {
   @ApiProperty()
   @Expose()
   email: string;
-
-  @ApiProperty()
-  @Expose()
-  approved?: boolean;
 }
 
 export class CompanyDTO {

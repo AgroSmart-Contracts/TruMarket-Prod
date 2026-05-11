@@ -15,7 +15,6 @@ import { useAppSelector } from "src/lib/hooks";
 import { selectIsTermsAndConditionsChecked } from "src/store/UiSlice";
 
 import SharedRegisterForm from "./shared-register-form";
-
 import OTPInputWrapper from "../../otp-input-wrapper";
 
 interface WithWeb3WalletProps { }

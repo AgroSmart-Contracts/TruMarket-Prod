@@ -1,8 +1,10 @@
 import classNames from "classnames";
-import React, { useEffect, useRef, InputHTMLAttributes, TextareaHTMLAttributes, ChangeEvent, FC } from "react";
+import React, { useEffect, useRef, InputHTMLAttributes, ChangeEvent, FC } from "react";
 import { FieldErrors } from "react-hook-form";
 
 import ValidationErrorMessage from "../validation-error-message";
+import { cn } from "src/lib/utils";
+import { tmFormControlInputClassName, tmFormControlTextareaClassName } from "src/lib/form-control-styles";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   classOverrides?: string;
@@ -50,6 +52,8 @@ const Input: FC<InputProps> = ({
     }
   }, [textareaDependency]);
 
+  const isRange = rest.type === "range";
+
   return (
     <div className="relative">
       {isTextArea ? (
@@ -59,13 +63,10 @@ const Input: FC<InputProps> = ({
           {...onchangeHandler}
           name={name}
           ref={textareaRef}
-          className={classNames(
+          className={cn(
+            tmFormControlTextareaClassName({ invalid: Boolean(hasError) }),
+            "text-tm-black-80 placeholder:font-light",
             classOverrides,
-            " w-full rounded-[4px]  border p-[10px] text-[13px] font-bold leading-[1.2em] tracking-normal text-tm-black-80 outline-none placeholder:font-light",
-            {
-              "!border-2 border-tm-danger": hasError,
-              "border-tm-black-20": !hasError,
-            },
           )}
         />
       ) : (
@@ -75,13 +76,13 @@ const Input: FC<InputProps> = ({
             {...(register ? { ...register } : null)}
             {...onchangeHandler}
             name={name}
-            className={classNames(
+            className={cn(
+              isRange
+                ? "h-2 w-full cursor-pointer accent-tm-green"
+                : tmFormControlInputClassName({ invalid: Boolean(hasError) }),
+              !isRange && "text-tm-black-80 placeholder:font-light",
               classOverrides,
-              " w-full rounded-[4px]  border text-[13px] font-bold leading-[1.2em] tracking-normal text-tm-black-80 outline-none placeholder:font-light " +
-              (rest.type === "range" ? "" : "p-[10px]"),
               {
-                "!border-2 border-tm-danger": hasError,
-                "border-tm-black-20": !hasError,
                 "pr-[40px]": placeHolderRight,
               },
             )}

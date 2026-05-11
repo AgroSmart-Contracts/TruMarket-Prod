@@ -22,7 +22,6 @@ import {
   DealStatus,
   DocumentFile,
   Milestone,
-  MilestoneApprovalStatus,
 } from './deals.entities';
 import { DealsRepository } from './deals.repository';
 
@@ -87,30 +86,56 @@ export class DealsService {
     return this.dealsRepository.findByUser(userId, query);
   }
 
-  async createDeal(user: User, dealPayload: Partial<Deal>): Promise<Deal> {
-    dealPayload.status = DealStatus.Proposal;
+  /**
+   * When automatic acceptance is enabled, mint NFT and attach vault metadata (same path as legacy confirm flow).
+   */
+  private async applyMintAndVaultIfEnabled(
+    deal: Deal,
+    dealUpdate: Partial<Deal>,
+  ): Promise<void> {
+    if (!config.automaticDealsAcceptance || !deal.buyers?.length) {
+      return;
+    }
 
-    dealPayload.buyers = dealPayload.buyers?.map((buyer) => {
-      if (buyer.id === user.id) {
-        return {
-          ...buyer,
-          approved: true,
-        };
-      }
-      return { ...buyer, new: true };
+    logger.debug({ dealId: deal.id }, 'Automatic deal acceptance: minting NFT');
+    const buyer = await this.users.findByEmail(deal.buyers[0].email);
+
+    const lastBlock = await this.blockchain.getLastBlock();
+
+    const txHash = await this.blockchain.mintNFT(
+      deal.milestones.map((m) => m.fundsDistribution),
+      deal.investmentAmount,
+      buyer.walletAddress,
+    );
+    const nftID = await this.blockchain.getNftID(txHash);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const vault = await this.blockchain.vault(nftID);
+
+    await SyncDealsLogsJob.create({
+      type: DealsLogsJobType.Vault,
+      contract: vault,
+      lastBlock,
+      active: true,
+      dealId: nftID,
     });
-    dealPayload.suppliers = dealPayload.suppliers?.map((supplier) => {
-      if (supplier.id === user.id) {
-        return {
-          ...supplier,
-          approved: true,
-        };
-      }
-      return {
-        ...supplier,
-        new: true,
-      };
-    });
+
+    dealUpdate.nftID = nftID;
+    dealUpdate.mintTxHash = txHash;
+    dealUpdate.vaultAddress = vault;
+  }
+
+  async createDeal(user: User, dealPayload: Partial<Deal>): Promise<Deal> {
+    // Active immediately: no proposal / counterparty confirmation handshake.
+    dealPayload.status = DealStatus.Confirmed;
+
+    dealPayload.buyers = dealPayload.buyers?.map((buyer) => ({
+      ...buyer,
+      new: buyer.id !== user.id,
+    }));
+    dealPayload.suppliers = dealPayload.suppliers?.map((supplier) => ({
+      ...supplier,
+      new: supplier.id !== user.id,
+    }));
 
     if (user.accountType === AccountType.Buyer) {
       await this.users.updateById(user.id, {
@@ -122,10 +147,15 @@ export class DealsService {
       });
     }
 
-    const deal = await this.dealsRepository.create(dealPayload);
+    let deal = await this.dealsRepository.create(dealPayload);
+
+    const mintUpdate: Partial<Deal> = {};
+    await this.applyMintAndVaultIfEnabled(deal, mintUpdate);
+    if (Object.keys(mintUpdate).length > 0) {
+      deal = await this.dealsRepository.updateById(deal.id, mintUpdate);
+    }
 
     if (deal.buyers && deal.suppliers) {
-      // invite users not registered in the platform
       const participantsNotRegistered = deal.buyers
         .concat(deal.suppliers)
         .filter((participant) => !participant.id);
@@ -139,7 +169,7 @@ export class DealsService {
       }
     }
 
-    await this.notifications.sendNewProposalNotification(
+    await this.notifications.sendDealCreatedNotification(
       this.selectParticipantsEmailsBasedOnUser(user, deal),
       deal,
       user.email,
@@ -208,7 +238,6 @@ export class DealsService {
         if (buyer.id === user.id) {
           return {
             ...buyer,
-            approved: true,
             new: false,
           };
         }
@@ -222,7 +251,6 @@ export class DealsService {
         if (supplier.id === user.id) {
           return {
             ...supplier,
-            approved: true,
             new: false,
           };
         }
@@ -232,43 +260,8 @@ export class DealsService {
         };
       });
 
-      if (
-        dealUpdate.buyers
-          .concat(dealUpdate.suppliers)
-          .every((participant) => participant.approved)
-      ) {
-        dealUpdate.status = DealStatus.Confirmed;
-
-        if (config.automaticDealsAcceptance && deal.buyers.length > 0) {
-          logger.debug('Automatic deal acceptance enabled! Minting NFT...');
-          const buyer = await this.users.findByEmail(deal.buyers[0].email);
-
-          const lastBlock = await this.blockchain.getLastBlock();
-
-          const txHash = await this.blockchain.mintNFT(
-            deal.milestones.map((m) => m.fundsDistribution),
-            deal.investmentAmount,
-            buyer.walletAddress,
-          );
-          const nftID = await this.blockchain.getNftID(txHash);
-          console.log('nftID', nftID);
-          // wait for 5 seconds to get the vault address
-          await new Promise((resolve) => setTimeout(resolve, 5000));
-          const vault = await this.blockchain.vault(nftID);
-
-          await SyncDealsLogsJob.create({
-            type: DealsLogsJobType.Vault,
-            contract: vault,
-            lastBlock,
-            active: true,
-            dealId: nftID,
-          });
-
-          dealUpdate.nftID = nftID;
-          dealUpdate.mintTxHash = txHash;
-          dealUpdate.vaultAddress = vault;
-        }
-      }
+      dealUpdate.status = DealStatus.Confirmed;
+      await this.applyMintAndVaultIfEnabled(deal, dealUpdate);
 
       await this.notifications.sendDealConfirmedNotification(
         this.selectParticipantsEmailsBasedOnUser(user, deal),
@@ -302,7 +295,7 @@ export class DealsService {
 
     await this.checkAuthorizedToUpdateDeal(deal, user);
 
-    if (deal.status !== DealStatus.Proposal) {
+    if (deal.status !== DealStatus.Proposal && deal.status !== DealStatus.Confirmed) {
       throw new BadRequestError('Deal cannot be canceled');
     }
     const dealUpdate: Partial<Deal> = {
@@ -426,7 +419,7 @@ export class DealsService {
 
     this.checkAuthorizedToUpdateDeal(deal, user);
 
-    if (deal.status !== DealStatus.Proposal) {
+    if (deal.status !== DealStatus.Proposal && deal.status !== DealStatus.Confirmed) {
       throw new BadRequestError('Deal cannot be updated');
     }
 
@@ -436,33 +429,15 @@ export class DealsService {
       user.email,
     );
 
-    dealPayload.buyers = deal.buyers.map((buyer) => {
-      if (buyer.id === user.id) {
-        return {
-          ...buyer,
-          approved: true,
-        };
-      }
+    dealPayload.buyers = deal.buyers.map((buyer) => ({
+      ...buyer,
+    }));
 
-      return {
-        ...buyer,
-        approved: false,
-      };
-    });
+    dealPayload.suppliers = deal.suppliers.map((supplier) => ({
+      ...supplier,
+    }));
 
-    dealPayload.suppliers = deal.suppliers.map((supplier) => {
-      if (supplier.id === user.id) {
-        return {
-          ...supplier,
-          approved: true,
-        };
-      }
-
-      return {
-        ...supplier,
-        approved: false,
-      };
-    });
+    dealPayload.status = DealStatus.Confirmed;
 
     return this.dealsRepository.updateById(dealId, dealPayload);
   }
@@ -811,149 +786,6 @@ export class DealsService {
     return this.dealsRepository.updateById(dealId, {
       currentMilestone: deal.currentMilestone + 1,
     });
-  }
-
-  async submitMilestoneReviewRequest(
-    dealId: string,
-    milestoneId: string,
-    user: User,
-  ): Promise<Milestone> {
-    const deal = await this.findById(dealId);
-
-    this.checkDealSupplier(
-      deal,
-      user,
-      'Only supplier can submit milestone review request',
-    );
-
-    const milestoneIndex = deal.milestones.findIndex(
-      (m) => m.id === milestoneId,
-    );
-    if (milestoneIndex === -1) {
-      throw new Error('Milestone not found');
-    } else if (milestoneIndex !== deal.currentMilestone) {
-      throw new BadRequestError('Milestone is not the current milestone');
-    } else if (
-      ![
-        MilestoneApprovalStatus.Pending,
-        MilestoneApprovalStatus.Denied,
-      ].includes(deal.milestones[milestoneIndex].approvalStatus)
-    ) {
-      throw new BadRequestError('Milestone is not pending or denied');
-    }
-
-    const milestone = await this.dealsRepository.upadteMilestoneStatus(
-      dealId,
-      milestoneId,
-      MilestoneApprovalStatus.Submitted,
-    );
-
-    this.notifications.sendMilestoneApprovalRequestNotification(
-      deal.buyers.map((b) => b.email),
-      deal,
-      milestone,
-      user.email,
-    );
-
-    return milestone;
-  }
-
-  async approveMilestone(
-    dealId: string,
-    milestoneId: string,
-    user: User,
-  ): Promise<Milestone> {
-    const deal = await this.findById(dealId);
-
-    if (deal.nftID === undefined) {
-      throw new BadRequestError('Deal NFT must be minted first');
-    }
-
-    this.checkDealBuyer(deal, user, 'Only buyer can approve milestone');
-
-    const milestoneIndex = deal.milestones.findIndex(
-      (m) => m.id === milestoneId,
-    );
-    if (milestoneIndex === -1) {
-      throw new Error('Milestone not found');
-    } else if (milestoneIndex !== deal.currentMilestone) {
-      throw new BadRequestError('Milestone is not the current milestone');
-    } else if (
-      deal.milestones[milestoneIndex].approvalStatus !==
-      MilestoneApprovalStatus.Submitted
-    ) {
-      throw new BadRequestError('Milestone review was not submitted');
-    }
-
-    await this.blockchain.changeMilestoneStatus(
-      deal.nftID as number,
-      milestoneIndex + 1,
-    );
-
-    const milestone = this.dealsRepository.upadteMilestoneStatus(
-      dealId,
-      milestoneId,
-      MilestoneApprovalStatus.Approved,
-    );
-
-    await this.notifications.sendMilestoneApprovedNotification(
-      this.selectParticipantsEmailsBasedOnUser(user, deal),
-      deal,
-      deal.milestones[milestoneIndex],
-      user.email,
-    );
-
-    if (milestoneIndex == 6) {
-      await this.dealsRepository.updateById(dealId, {
-        status: DealStatus.Finished,
-      });
-
-      await this.notifications.sendDealCompletedNotification(
-        this.selectParticipantsEmailsBasedOnUser(user, deal),
-        deal,
-      );
-    }
-
-    return milestone;
-  }
-
-  async denyMilestone(
-    dealId: string,
-    milestoneId: string,
-    user: User,
-  ): Promise<Milestone> {
-    const deal = await this.findById(dealId);
-
-    this.checkDealBuyer(deal, user, 'Only buyer can deny milestone');
-
-    const milestoneIndex = deal.milestones.findIndex(
-      (m) => m.id === milestoneId,
-    );
-    if (milestoneIndex === -1) {
-      throw new Error('Milestone not found');
-    } else if (milestoneIndex !== deal.currentMilestone) {
-      throw new BadRequestError('Milestone is not the current milestone');
-    } else if (
-      deal.milestones[milestoneIndex].approvalStatus !==
-      MilestoneApprovalStatus.Submitted
-    ) {
-      throw new BadRequestError('Milestone review was not submitted');
-    }
-
-    const milestone = await this.dealsRepository.upadteMilestoneStatus(
-      dealId,
-      milestoneId,
-      MilestoneApprovalStatus.Denied,
-    );
-
-    await this.notifications.sendMilestoneDeniedNotification(
-      this.selectParticipantsEmailsBasedOnUser(user, deal),
-      deal,
-      milestone,
-      user.email,
-    );
-
-    return milestone;
   }
 
   async getDealsParticipantsByEmails(

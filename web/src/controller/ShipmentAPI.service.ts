@@ -6,7 +6,6 @@ import { IMilestoneDetails, MilestoneEnum } from "src/interfaces/global";
 import {
   DealStatus,
   ICreateShipmentParams,
-  IMilestoneStatusInfo,
   NftDealLogs,
   ShippingDetails,
 } from "../interfaces/shipment";
@@ -56,15 +55,22 @@ export class ShipmentService {
     milestoneId?: string,
   ): Promise<{ id: string; description: string; url: string }> {
     const formData = new FormData();
+    const extension = file.file.name.split(".").pop()?.toLowerCase();
+    const shouldNormalizePdfMime =
+      extension === "pdf" &&
+      (!file.file.type || file.file.type === "application/octet-stream");
+    const uploadFile = shouldNormalizePdfMime
+      ? new File([file.file], file.file.name, { type: "application/pdf" })
+      : file.file;
 
     formData.append("description", file.description);
-    formData.append("file", file.file);
+    formData.append("file", uploadFile, uploadFile.name);
 
-    const response = await axiosInstance.post(`/deals/${dealId}/milestones/${milestoneId}/docs`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    // Let the browser set multipart boundary automatically.
+    const response = await axiosInstance.post(
+      `/deals/${dealId}/milestones/${milestoneId}/docs`,
+      formData,
+    );
 
     return response.data;
   }
@@ -85,17 +91,6 @@ export class ShipmentService {
   ): Promise<ShippingDetails> {
     const response = await axiosInstance.put(`/deals/${dealId}/milestones/${milestoneId}/docs/${docId}`, {
       view: true,
-    });
-    return response.data;
-  }
-
-  static async updateMilestoneStatus(
-    dealId: string,
-    milestoneId: string,
-    milestoneStatusInfo: IMilestoneStatusInfo,
-  ): Promise<IMilestoneDetails> {
-    const response = await axiosInstance.put(`/deals/${dealId}/milestones/${milestoneId}`, {
-      ...milestoneStatusInfo,
     });
     return response.data;
   }

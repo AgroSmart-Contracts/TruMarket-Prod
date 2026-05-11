@@ -2,14 +2,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import { createWrapper } from "next-redux-wrapper";
 
 import UiSlice from "src/store/UiSlice";
-import shipmentAgreementSlice from "src/store/createShipmentAgreementSlice";
+import shipmentAgreementReducer from "src/store/createShipmentAgreementSlice";
 import previewModalContentSlice from "src/store/previewModalContentSlice";
 import shipmentDetailsSlice from "src/store/shipmentDetailsSlice";
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
-      shipmentAgreement: shipmentAgreementSlice,
+      shipmentAgreement: shipmentAgreementReducer,
       previewModalContent: previewModalContentSlice,
       shipmentDetails: shipmentDetailsSlice,
       UI: UiSlice,

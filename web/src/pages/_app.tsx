@@ -9,11 +9,11 @@ import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { useEffect } from "react";
+import { Provider } from "react-redux";
 
 import { Web3AuthContextProvider } from "src/context/web3-auth-context";
 import { wrapper } from "src/lib/store";
 import { ModalProvider } from "src/context/modal-context";
-import { Provider } from "react-redux";
 
 import Layout from "./layout";
 
@@ -64,7 +64,7 @@ const inter = Inter({
 function App({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const { pageProps } = props;
-  
+
   // Create a client
   const queryClient = new QueryClient();
 

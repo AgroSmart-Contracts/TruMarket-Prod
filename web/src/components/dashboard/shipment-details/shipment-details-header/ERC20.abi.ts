@@ -1,4 +1,4 @@
-export default [
+const erc20Abi = [
   {
     inputs: [],
     stateMutability: 'nonpayable',
@@ -349,3 +349,5 @@ export default [
     type: 'function',
   },
 ];
+
+export default erc20Abi;

@@ -34,11 +34,8 @@ import { DealDtoResponse } from './dto/dealResponse.dto';
 import { documentResponseDTO } from './dto/documentResponse.dto';
 import { ListDealsDto } from './dto/listDeals.dto';
 import { ListDealDtoResponse } from './dto/listDealsResponse.dto';
-import { MilestoneDto } from './dto/milestone.dto';
-import { MilestoneResponseDto } from './dto/milestoneResponse.dto';
 import { UpdateDealDto } from './dto/updateDeal.dto';
 import { UpdateDocumentDto } from './dto/updateDocument.dto';
-import { UpdateMilestoneDto } from './dto/updateMilestone.dto';
 import { UploadDocumentDTO } from './dto/uploadDocument.dto';
 
 @ApiTags('deals')
@@ -293,49 +290,6 @@ export class DealsController {
     await this.dealsService.findUserDealById(id, user);
     const logs = await this.dealsService.findDealsLogs(id);
     return logs.map((doc) => new DealLogsDtoResponse(doc));
-  }
-
-  // Milestones routes
-
-  @Put(':dealId/milestones/:milestoneId')
-  @AuthenticatedRestricted()
-  @ApiOperation({ summary: 'Update milestone status' })
-  @ApiResponse({
-    status: 200,
-    type: MilestoneDto,
-    description: 'The deal milestone document was successfully uploaded',
-  })
-  async updateMilestone(
-    @Param('dealId') id: string,
-    @Param('milestoneId') milestoneId: string,
-    @Body() payload: UpdateMilestoneDto,
-    @Request() req,
-  ): Promise<MilestoneDto> {
-    const user: User = req.user;
-
-    const { submitToReview, approve, deny } = payload;
-
-    let milestone: MilestoneResponseDto;
-
-    if (submitToReview) {
-      milestone = await this.dealsService.submitMilestoneReviewRequest(
-        id,
-        milestoneId,
-        user,
-      );
-    } else if (approve) {
-      milestone = await this.dealsService.approveMilestone(
-        id,
-        milestoneId,
-        user,
-      );
-    } else if (deny) {
-      milestone = await this.dealsService.denyMilestone(id, milestoneId, user);
-    } else {
-      throw new Error('Invalid payload');
-    }
-
-    return new MilestoneResponseDto(milestone);
   }
 
   @Post(':dealId/milestones/:milestoneId/docs')

@@ -16,7 +16,7 @@ describe('Deal Proposal Flows (e2e)', () => {
     await app.teardown();
   });
 
-  it('buyer creates deal proposal and supplier accepts', async () => {
+  it('buyer creates deal — confirmed immediately (no counterparty acceptance required)', async () => {
     // create buyer and supplier users
     const buyer = await UserModel.create({
       email: 'buyer@example.com',
@@ -59,33 +59,33 @@ describe('Deal Proposal Flows (e2e)', () => {
       id: dealReq.body.id,
       buyers: [{ email: buyer.email, id: buyer.id }],
       suppliers: [{ email: supplier.email, id: supplier.id }],
-      status: DealStatus.Proposal,
+      status: DealStatus.Confirmed,
     } as Deal);
 
-    // accept deal with supplier account
-    const acceptDealReq = await app
-      .request()
-      .put(`/deals/${dealReq.body.id}`)
-      .set('Authorization', `Bearer ${supplierToken}`)
-      .send({ confirm: true })
-      .expect(200);
-
-    // check deal status
-    expect(acceptDealReq.body).toMatchObject({
-      id: dealReq.body.id,
-      status: DealStatus.Confirmed,
-    });
-
-    // check deal updates are locked
+    // legacy confirm endpoint is only valid for proposal deals
     await app
       .request()
       .put(`/deals/${dealReq.body.id}`)
       .set('Authorization', `Bearer ${supplierToken}`)
-      .send({ name: 'test 2' })
+      .send({ confirm: true })
       .expect(400);
+
+    // updates remain allowed on confirmed deals
+    const updateReq = await app
+      .request()
+      .put(`/deals/${dealReq.body.id}`)
+      .set('Authorization', `Bearer ${supplierToken}`)
+      .send({ name: 'Updated name' })
+      .expect(200);
+
+    expect(updateReq.body).toMatchObject({
+      id: dealReq.body.id,
+      status: DealStatus.Confirmed,
+      name: 'Updated name',
+    });
   });
 
-  it('supplier creates deal proposal, buyer changes deal details, supplier accepts buyer changes', async () => {
+  it('supplier creates deal — buyer can edit terms without a new acceptance round', async () => {
     // create buyer and supplier users
     const buyer = await UserModel.create({
       email: 'buyer@example.com',
@@ -128,10 +128,10 @@ describe('Deal Proposal Flows (e2e)', () => {
       id: dealReq.body.id,
       buyers: [{ email: buyer.email, id: buyer.id }],
       suppliers: [{ email: supplier.email, id: supplier.id }],
-      status: DealStatus.Proposal,
+      status: DealStatus.Confirmed,
     } as Deal);
 
-    // change deal with buyer account
+    // change deal with buyer account — stays confirmed
     const changeDealReq = await app
       .request()
       .put(`/deals/${dealReq.body.id}`)
@@ -142,34 +142,32 @@ describe('Deal Proposal Flows (e2e)', () => {
     // check deal status
     expect(changeDealReq.body).toMatchObject({
       id: dealReq.body.id,
-      status: DealStatus.Proposal,
-      buyers: [{ email: buyer.email, id: buyer.id, approved: true }],
-      suppliers: [{ email: supplier.email, id: supplier.id, approved: false }],
-    });
-
-    // accept deal with supplier account
-    const acceptDealReq = await app
-      .request()
-      .put(`/deals/${dealReq.body.id}`)
-      .set('Authorization', `Bearer ${supplierToken}`)
-      .send({ confirm: true })
-      .expect(200);
-
-    // check deal status
-    expect(acceptDealReq.body).toMatchObject({
-      id: dealReq.body.id,
       status: DealStatus.Confirmed,
-      buyers: [{ email: buyer.email, id: buyer.id, approved: true }],
-      suppliers: [{ email: supplier.email, id: supplier.id, approved: true }],
+      name: 'test 2',
+      buyers: [{ email: buyer.email, id: buyer.id }],
+      suppliers: [{ email: supplier.email, id: supplier.id }],
     });
 
-    // check deal updates are locked
+    // no separate supplier "accept" step — optional legacy confirm returns 400
     await app
       .request()
       .put(`/deals/${dealReq.body.id}`)
       .set('Authorization', `Bearer ${supplierToken}`)
-      .send({ name: 'test 2' })
+      .send({ confirm: true })
       .expect(400);
+
+    const afterSupplierEdit = await app
+      .request()
+      .put(`/deals/${dealReq.body.id}`)
+      .set('Authorization', `Bearer ${supplierToken}`)
+      .send({ description: 'Updated by supplier' })
+      .expect(200);
+
+    expect(afterSupplierEdit.body).toMatchObject({
+      id: dealReq.body.id,
+      status: DealStatus.Confirmed,
+      description: 'Updated by supplier',
+    });
   });
 
   it('supplier creates deal proposal with a buyer email that does not exist in database, buyer signsup, deal is associated to the buyer', async () => {

@@ -152,7 +152,7 @@ const WithdrawDialog: React.FC<WithdrawDialogProps> = ({
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder={`0.0 ${investmentTokenSymbol}`}
-                  className="mt-2 h-auto w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-[#4E8C37]"
+                  className="mt-2"
                 />
               </FieldContent>
               <FieldDescription className="ml-1 text-xs text-[#9CA3AF]">
@@ -170,7 +170,7 @@ const WithdrawDialog: React.FC<WithdrawDialogProps> = ({
                   value={toAddress}
                   onChange={(e) => setToAddress(e.target.value)}
                   placeholder="0x..."
-                  className="mt-2 h-auto w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-[#4E8C37]"
+                  className="mt-2"
                 />
               </FieldContent>
             </Field>

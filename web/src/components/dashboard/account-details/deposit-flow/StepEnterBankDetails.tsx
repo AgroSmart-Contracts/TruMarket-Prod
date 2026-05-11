@@ -1,25 +1,27 @@
 import React from 'react';
+
 import { Field, FieldContent, FieldLabel } from 'src/components/ui/field';
 import { Input } from 'src/components/ui/input';
-import type { UserProfileInfo } from 'src/interfaces/auth';
 
-type BankDetails = NonNullable<UserProfileInfo['bankDetails']>;
+import type { RecipientBankDetails } from './deposit-types';
 
 interface StepEnterBankDetailsProps {
-  bankDetails: Partial<BankDetails>;
-  onChange: (details: Partial<BankDetails>) => void;
+  bankDetails: Partial<RecipientBankDetails>;
+  onChange: (details: Partial<RecipientBankDetails>) => void;
 }
 
 export const StepEnterBankDetails: React.FC<StepEnterBankDetailsProps> = ({
   bankDetails,
   onChange,
 }) => {
-  const handleChange = (field: keyof BankDetails) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange({ [field]: e.target.value } as Partial<BankDetails>);
+  const handleChange =
+    (field: keyof RecipientBankDetails) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange({ [field]: e.target.value } as Partial<RecipientBankDetails>);
   };
 
   const renderField = (
-    id: keyof BankDetails,
+    id: keyof RecipientBankDetails,
     label: string,
     options?: { required?: boolean; transformUppercase?: boolean },
   ) => {
@@ -37,10 +39,13 @@ export const StepEnterBankDetails: React.FC<StepEnterBankDetailsProps> = ({
             value={valueForId}
             onChange={
               options?.transformUppercase
-                ? (e) => onChange({ [id]: e.target.value.toUpperCase() } as Partial<BankDetails>)
+                ? (e) =>
+                    onChange({
+                      [id]: e.target.value.toUpperCase(),
+                    } as Partial<RecipientBankDetails>)
                 : handleChange(id)
             }
-            className="mt-2 h-auto w-full rounded-lg border border-tm-black-20 px-[8px] py-[6px] text-[13px]"
+            className="mt-2"
           />
         </FieldContent>
       </Field>
@@ -49,15 +54,19 @@ export const StepEnterBankDetails: React.FC<StepEnterBankDetailsProps> = ({
 
   return (
     <div className="space-y-4">
-      <p className="mb-4 text-sm text-slate-600">
-        Enter the recipient&apos;s bank account details for payment processing.
-      </p>
+      <div className="rounded-2xl border border-[#E5E7EB] bg-slate-50 p-4">
+        <h3 className="text-sm font-semibold text-slate-900">Supplier bank details</h3>
+        <p className="mt-0.5 text-xs text-slate-600">
+          The supplier does not have a linked account yet. Enter the settlement details to continue.
+        </p>
+      </div>
 
       <div className="max-w-[520px] space-y-4">
-        {renderField('beneficiaryName', 'Beneficiary name', { required: true })}
-        {renderField('bankName', 'Bank name')}
+        {renderField('accountHolderName', 'Beneficiary name', { required: true })}
+        {renderField('countryCode', 'Country code', { required: true, transformUppercase: true })}
+        {renderField('bankName', 'Bank name', { required: true })}
         {renderField('accountNumber', 'Account number', { required: true })}
-        {renderField('swiftCode', 'SWIFT/BIC', { required: true })}
+        {renderField('swiftBic', 'SWIFT/BIC', { required: true, transformUppercase: true })}
       </div>
     </div>
   );

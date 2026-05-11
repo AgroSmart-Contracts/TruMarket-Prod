@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
 import { AdminService } from "src/controller/AdminAPI.service";
+
 import EnhancedTableHead from "../base-table/table-head";
 
 interface UsersProps { }

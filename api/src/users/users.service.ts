@@ -45,7 +45,7 @@ export class UsersService {
   ): Promise<User | undefined> {
     logger.debug({ userId, update }, 'Updating user by ID');
     const result = await this.users.updateById(userId, update);
-    logger.debug({ userId, result, bankDetailsInResult: result?.bankDetails }, 'User updated by ID');
+    logger.debug({ userId, result }, 'User updated by ID');
     return result;
   }
 

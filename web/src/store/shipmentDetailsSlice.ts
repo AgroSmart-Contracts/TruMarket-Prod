@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { IMilestoneDetails, MilestoneApprovalStatus, MilestoneEnum, MilestoneStatus } from "src/interfaces/global";
+import { IMilestoneDetails, MilestoneEnum } from "src/interfaces/global";
 
 import type { RootState } from "../lib/store";
 
@@ -15,7 +15,7 @@ const initialState: ShipmentDetails = {
   milestoneDetails: [],
 };
 
-export const shipmentDetailsSlice = createSlice({
+const shipmentDetailsSlice = createSlice({
   name: "shipmentDetails",
   initialState,
   reducers: {

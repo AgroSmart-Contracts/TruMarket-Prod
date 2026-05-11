@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { UpdateQuery } from 'mongoose';
 
 import {
   Deal,
@@ -7,7 +6,6 @@ import {
   DealStatus,
   DocumentFile,
   Milestone,
-  MilestoneApprovalStatus,
 } from '@/deals/deals.entities';
 import { DealsRepository } from '@/deals/deals.repository';
 import DealsLogs from '@/deals-logs/deals-logs.model';
@@ -128,36 +126,6 @@ export class DealsMongooseRepository
     const doc = milestone.docs.pop();
 
     return doc.toJSON();
-  }
-
-  async upadteMilestoneStatus(
-    dealId: string,
-    milestoneId: string,
-    approvalStatus: MilestoneApprovalStatus,
-  ): Promise<Milestone> {
-    const update: UpdateQuery<Deal> = {
-      $set: { 'milestones.$.approvalStatus': approvalStatus },
-    };
-
-    if (approvalStatus === MilestoneApprovalStatus.Approved) {
-      update.$inc = { currentMilestone: 1 };
-    }
-
-    const deal = await DealModel.findOneAndUpdate(
-      { _id: dealId, 'milestones._id': milestoneId },
-      update,
-      { new: true },
-    );
-
-    const milestone = deal.milestones.find(
-      (m) => m.toJSON().id === milestoneId,
-    );
-
-    if (!milestone) {
-      throw new NotFoundError('milestone not found');
-    }
-
-    return milestone.toJSON();
   }
 
   async updateMilestoneDocument(

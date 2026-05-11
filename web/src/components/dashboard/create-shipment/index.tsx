@@ -11,9 +11,10 @@ import {
   cloneShipmentAgreementState,
   resetShipmentAgreementState,
   selectShipmentAgreementState,
+  setShipmentAgreementState,
 } from "src/store/createShipmentAgreementSlice";
 
-import CompanyData from "./company-data";
+import { AuthService } from "src/controller/AuthAPI.service";
 import EnterAddressee from "./enter-addressee";
 import OriginAndDestination from "./origin-and-destination";
 import PaymentValues from "./payment-values";
@@ -114,40 +115,6 @@ const CreateShipment: React.FC<CreateShipment> = () => {
         ),
       },
       {
-        label: "Your Data",
-        subLabel: (
-          <p>
-            Enter your company <br /> data
-          </p>
-        ),
-        hint: (
-          <span>
-            All participants have to confirm this agreement. They will be authorized to manage the milestones. <br />
-            <span>
-              If any of the e-mails does not have an account in the platform, we will send him an e-mail invitation.
-            </span>
-          </span>
-        ),
-        nodeToRender: <CompanyData setSelectedIndex={setSelectedIndex} selectedIndex={selectedIndex} />,
-        filledValues: (
-          <div className="flex">
-            <InformationRow label="Company Name:" underlined={false} value={safeString(shipmentFormData.companyName)} />
-            <InformationRowDivider />
-            <InformationRow label="Country:" underlined={false} value={safeString(shipmentFormData.country?.label || shipmentFormData.country)} />
-            <InformationRowDivider />
-            <InformationRow label="Tax ID:" underlined={false} value={safeString(shipmentFormData.taxId)} />
-            <InformationRowDivider />
-            <InformationRow
-              label="Participants:"
-              underlined={false}
-              value={shipmentFormData?.participants
-                ?.map((participant: { label: string; value: string }) => participant.label)
-                ?.join(", ") || ""}
-            />
-          </div>
-        ),
-      },
-      {
         label: isBuyer ? "Supplier" : "Buyer",
         subLabel: (
           <span>
@@ -214,7 +181,22 @@ const CreateShipment: React.FC<CreateShipment> = () => {
 
     if (!cloneShipmentId) {
       dispatch(resetShipmentAgreementState());
-      loadSteps();
+      AuthService.getUserProfileInfo()
+        .then((profile) => {
+          if (!profile.company) {
+            return;
+          }
+          dispatch(setShipmentAgreementState({ field: "companyName", value: profile.company.name }));
+          dispatch(setShipmentAgreementState({ field: "taxId", value: profile.company.taxId }));
+          dispatch(
+            setShipmentAgreementState({
+              field: "country",
+              value: { label: profile.company.country, value: profile.company.country },
+            }),
+          );
+          dispatch(setShipmentAgreementState({ field: "participants", value: [] }));
+        })
+        .finally(() => loadSteps());
       return;
     }
 

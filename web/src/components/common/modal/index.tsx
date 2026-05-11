@@ -16,6 +16,8 @@ interface TMModalProps {
   showCloseIcon?: boolean;
   showHeader?: boolean;
   headerText?: string;
+  /** When set (e.g. title + logo), rendered instead of plain `headerText`. */
+  headerContent?: React.ReactNode;
 }
 
 const TMModal: React.FC<TMModalProps> = ({
@@ -25,6 +27,7 @@ const TMModal: React.FC<TMModalProps> = ({
   classOverrides,
   fullScreen,
   headerText,
+  headerContent,
   showHeader = false,
   showCloseIcon = true,
 }) => {
@@ -51,16 +54,20 @@ const TMModal: React.FC<TMModalProps> = ({
             fullScreen ? "h-full w-[90vw]" : "h-auto w-full max-w-[400px]",
           )}
         >
-          <div className="relative">
+          <div className="relative flex min-h-0 w-full max-w-full flex-1 flex-col">
             <div
               className={classNames({
                 "fixed z-10 w-full border-b border-b-tm-black-20 bg-tm-white rounded-t-xl sm:rounded-t-2xl": showHeader,
               })}
             >
-              {showHeader && headerText ? (
-                <p className="px-6 sm:px-[30px] py-4 sm:py-[20px] text-base sm:text-[18px] font-bold leading-[1.1em] text-tm-black-80">
-                  {headerText}
-                </p>
+              {showHeader && (headerContent != null || headerText) ? (
+                <div className="flex items-center gap-3 px-6 py-4 sm:px-[30px] sm:py-[20px] pr-14 sm:pr-16">
+                  {headerContent ?? (
+                    <p className="text-base sm:text-[18px] font-bold leading-[1.1em] text-tm-black-80">
+                      {headerText}
+                    </p>
+                  )}
+                </div>
               ) : null}
               {showCloseIcon && (
                 <div className="absolute right-4 sm:right-[18px] top-3 sm:top-[14px] z-[999]">
@@ -73,7 +80,9 @@ const TMModal: React.FC<TMModalProps> = ({
                 </div>
               )}
             </div>
-            <div>{children}</div>
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+              {children}
+            </div>
           </div>
         </div>
       </Fade>

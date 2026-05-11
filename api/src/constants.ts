@@ -3,6 +3,9 @@ export const providers = {
   StorageService: 'STORAGE_SERVICE',
   DealsRepository: 'DealsRepository',
   UsersRepository: 'UsersRepository',
-  KYCRepository: 'KYCRepository',
   NotificationsRepository: 'NotificationsRepository',
+  PaymentsRepository: 'PaymentsRepository',
+  BankAccountsRepository: 'BankAccountsRepository',
+  PaymentProviderTransfersRepository: 'PaymentProviderTransfersRepository',
+  TruMarketSettingsRepository: 'TruMarketSettingsRepository',
 };

@@ -26,7 +26,7 @@ const config: HardhatUserConfig = {
     outputFile: 'gas-report.txt',
   },
   solidity: {
-    version: '0.8.26',
+    version: '0.8.24',
     settings: {
       optimizer: {
         enabled: true,
@@ -66,7 +66,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      base: 'JQ5KF4MA5DW77VGPW9DMT9VXXHU536DGKB'
+      base: process.env.ETHERSCAN_API_KEY as string,
     },
   },
   mocha: {

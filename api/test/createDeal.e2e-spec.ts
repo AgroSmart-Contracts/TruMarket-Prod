@@ -288,7 +288,7 @@ describe('Create Deal (e2e)', () => {
           fundsDistribution: 30,
         },
       ],
-      status: DealStatus.Proposal,
+      status: DealStatus.Confirmed,
       buyerCompany: {
         name: 'Buyer Company',
         country: 'Brazil',

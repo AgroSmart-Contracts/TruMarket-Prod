@@ -59,7 +59,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, showSignInLink
 
                     {/* Copyright Notice */}
                     <div className="mt-8 text-center text-sm text-tm-text-light">
-                        © 2025 TruMarket
+                        © 2026 TruMarket
                     </div>
                 </div>
             </div>

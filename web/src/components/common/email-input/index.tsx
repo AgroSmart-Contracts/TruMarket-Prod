@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import { FieldErrors, UseFormRegister } from "react-hook-form";
+
 import Input from "../input";
 
 interface EmailInputProps {

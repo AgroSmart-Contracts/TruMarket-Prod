@@ -13,14 +13,12 @@ async function main() {
 
   const status = await dealsManager.status(0);
   const milestones = await dealsManager.milestones(0);
-  const borrower = await dealsManager.borrower(0);
-  const maxDeposit = await dealsManager.maxDeposit(0);
+  const vault = await dealsManager.vault(0);
 
   console.log('NFT details:', {
     status,
     milestones,
-    borrower,
-    maxDeposit,
+    vault,
   });
 }
 

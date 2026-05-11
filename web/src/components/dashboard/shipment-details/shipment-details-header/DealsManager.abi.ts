@@ -1,4 +1,4 @@
-export default [
+const dealsManagerAbi = [
   {
     "inputs": [
       {
@@ -893,4 +893,6 @@ export default [
     "stateMutability": "view",
     "type": "function"
   }
-]
+];
+
+export default dealsManagerAbi;

@@ -1,25 +1,22 @@
-import ImageIcon from "@mui/icons-material/Image";
 import classNames from "classnames";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { DropzoneInputProps, DropzoneRootProps } from "react-dropzone";
 import { FileImage, FileText, FileVideo } from "@phosphor-icons/react";
 
 import UploadedFileBox from "src/components/dashboard/shipment-details/attached-documents-view/uploaded-file-box";
-import { AccountTypeEnum, FileWithPreview, IMilestoneDetails, IUploadedFileProps } from "src/interfaces/global";
+import { AccountTypeEnum, IMilestoneDetails, IUploadedFileProps } from "src/interfaces/global";
 import { getFileExtension } from "src/lib/helpers";
 import { useUserInfo } from "src/lib/hooks/useUserInfo";
 import { useGetWindowDimension } from "src/lib/hooks/useGetWindowDimensions";
 
 import EmptyDocumentsBuyer from "./empty-documents-buyer";
 import EmptyDocumentsSupplier from "./empty-documents-supplier";
-import Loading from "../loading";
 
 interface IDropZoneProps {
   uploadedFiles: IUploadedFileProps[];
   getInputProps: <T extends DropzoneInputProps>(props?: T) => T;
   getRootProps: <T extends DropzoneRootProps>(props?: T) => T;
   open: () => void;
-  uploadInProgress: boolean;
   selectedMilestone: IMilestoneDetails;
   handleChangeDocumentVisibility: (id: string, visibility: boolean) => Promise<void>;
 }
@@ -29,7 +26,6 @@ export default function DropZone({
   getInputProps,
   getRootProps,
   open,
-  uploadInProgress,
   selectedMilestone,
   handleChangeDocumentVisibility,
 }: IDropZoneProps) {
@@ -67,7 +63,7 @@ export default function DropZone({
 
   return (
     <section
-      className="container relative h-full p-0"
+      className="container relative h-[230px] p-0"
       draggable
       onDragEnter={() => setDropZoneActive(true)}
       onDragEnd={() => setDropZoneActive(false)}
@@ -97,21 +93,9 @@ export default function DropZone({
           </div>
         ) : null}
 
-        {uploadInProgress ? (
-          <div className="relative z-[9999999999] flex h-full w-full flex-col items-center justify-center">
-            <div className="absolute bottom-0 left-1/2 top-1/2 h-full w-full translate-y-1/2">
-              <Loading />
-            </div>
-          </div>
-        ) : null}
-
         <input {...getInputProps()} />
       </div>
-      <div
-        className={classNames("absolute top-[0px] flex h-full w-full flex-wrap  gap-[10px]", {
-          "opacity-50": uploadInProgress,
-        })}
-      >
+      <div className="absolute top-[0px] flex h-full w-full flex-wrap gap-[10px]">
         {/* local files */}
         <>{!dropZoneActive ? renderContent() : null}</>
       </div>

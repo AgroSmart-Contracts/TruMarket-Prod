@@ -1,7 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
 import {
-  MilestoneApprovalStatus,
   MilestoneStatus,
 } from '@/deals/deals.entities';
 import { ConflictError } from '@/errors';
@@ -47,7 +46,6 @@ walletSchema.set('toJSON', {
 const participantSchema = new Schema({
   id: String,
   email: String,
-  approved: Boolean,
   walletAddress: String,
   new: Boolean,
 });
@@ -93,11 +91,6 @@ const milestoneSchema = new Schema({
   },
   docs: {
     type: [documentSchema],
-  },
-  approvalStatus: {
-    type: String,
-    enum: ['pending', 'submitted', 'approved', 'denied'],
-    default: MilestoneApprovalStatus.Pending,
   },
 });
 
@@ -264,6 +257,10 @@ const dealSchema = new Schema({
     type: [participantSchema],
     default: [],
     required: true,
+  },
+  payments: {
+    type: [String],
+    default: [],
   },
   buyerCompany: {
     type: companySchema,

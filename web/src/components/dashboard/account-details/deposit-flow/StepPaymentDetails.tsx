@@ -1,8 +1,10 @@
 import React from 'react';
+
 import { Field, FieldContent, FieldDescription, FieldLabel } from 'src/components/ui/field';
 import { Input } from 'src/components/ui/input';
-import { Textarea } from 'src/components/ui/textarea';
-import { cn } from 'src/lib/utils';
+import { NativeSelect } from 'src/components/ui/native-select';
+import { CurrencyFormatter } from 'src/lib/helpers';
+
 import type { PaymentDraft, Currency } from './deposit-types';
 
 interface StepPaymentDetailsProps {
@@ -11,11 +13,9 @@ interface StepPaymentDetailsProps {
   amountError: string;
   touchedEmail: boolean;
   touchedAmount: boolean;
-  showDetails: boolean;
   onChangeDraft: (update: Partial<PaymentDraft>) => void;
   onBlurEmail: () => void;
   onBlurAmount: () => void;
-  onToggleDetails: () => void;
   onShowEscrowInfo: () => void;
   onAmountInput: (value: string) => void;
 }
@@ -26,16 +26,21 @@ export const StepPaymentDetails: React.FC<StepPaymentDetailsProps> = ({
   amountError,
   touchedEmail,
   touchedAmount,
-  showDetails,
   onChangeDraft,
   onBlurEmail,
   onBlurAmount,
-  onToggleDetails,
   onShowEscrowInfo,
   onAmountInput,
 }) => {
   const hasEmailError = touchedEmail && !!emailError;
   const hasAmountError = touchedAmount && !!amountError;
+
+  const getFormattedAmount = () => {
+    if (!draft.amount) return '';
+    const numericValue = Number(draft.amount.replace(/,/g, '') || '0');
+    // Use shared currency formatter and strip the currency symbol
+    return CurrencyFormatter(numericValue).replace('$', '').trim();
+  };
 
   return (
     <div className="space-y-3">
@@ -52,9 +57,8 @@ export const StepPaymentDetails: React.FC<StepPaymentDetailsProps> = ({
             type="email"
             inputMode="email"
             autoComplete="email"
-            className={cn(
-              'mt-2 h-auto w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-[#4E8C37]',
-            )}
+            invalid={hasEmailError}
+            className="mt-2"
           />
           <FieldDescription className="ml-1 text-xs text-[#9CA3AF]">
             {hasEmailError ? (
@@ -74,14 +78,15 @@ export const StepPaymentDetails: React.FC<StepPaymentDetailsProps> = ({
             <div>
               <Input
                 id="payment-amount"
-                value={draft.amount}
-                onChange={(e) => onAmountInput(e.target.value)}
+                value={getFormattedAmount()}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/,/g, '');
+                  onAmountInput(raw);
+                }}
                 onBlur={onBlurAmount}
                 placeholder="0.00"
                 inputMode="decimal"
-                className={cn(
-                  'h-auto w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-[#4E8C37]',
-                )}
+                invalid={hasAmountError}
               />
               <FieldDescription className="ml-1 text-xs text-[#9CA3AF]">
                 {hasAmountError ? amountError : 'Funds are held in escrow until shipment is confirmed.'}
@@ -93,66 +98,20 @@ export const StepPaymentDetails: React.FC<StepPaymentDetailsProps> = ({
               <label htmlFor="payment-currency" className="sr-only">
                 Currency
               </label>
-              <select
+              <NativeSelect
                 id="payment-currency"
                 value={draft.currency}
                 onChange={(e) => onChangeDraft({ currency: e.target.value as Currency })}
-                className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-slate-900 focus-visible:border-[#4E8C37]"
               >
                 <option value="HKD">HKD</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
                 <option value="GBP">GBP</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
         </FieldContent>
       </Field>
-
-      {/* Add details (optional) */}
-      <div className="space-y-4 rounded-2xl border border-[#E5E7EB] p-4">
-        <button
-          type="button"
-          onClick={onToggleDetails}
-          className="flex w-full items-center justify-between text-left"
-        >
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-slate-800">Add details (optional)</span>
-            <span className="text-xs font-medium text-[#9CA3AF]">Invoice number and description</span>
-          </div>
-          <span className="text-xl font-semibold text-slate-500">{showDetails ? '−' : '+'}</span>
-        </button>
-
-        {showDetails && (
-          <div className="space-y-4 pt-2">
-            <Field className="gap-0">
-              <FieldLabel htmlFor="invoice-number">Invoice number (optional)</FieldLabel>
-              <FieldContent className="gap-0">
-                <Input
-                  id="invoice-number"
-                  value={draft.invoiceNumber}
-                  onChange={(e) => onChangeDraft({ invoiceNumber: e.target.value })}
-                  placeholder="INV-2026-001"
-                  className="mt-2 h-auto w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-[#4E8C37]"
-                />
-              </FieldContent>
-            </Field>
-
-            <Field className="gap-0">
-              <FieldLabel htmlFor="payment-description">Description (optional)</FieldLabel>
-              <FieldContent className="gap-0">
-                <Textarea
-                  id="payment-description"
-                  value={draft.description}
-                  onChange={(e) => onChangeDraft({ description: e.target.value })}
-                  placeholder="Payment description..."
-                  className="mt-2 min-h-[50px] w-full resize-none rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-[#4E8C37]"
-                />
-              </FieldContent>
-            </Field>
-          </div>
-        )}
-      </div>
 
       {/* Info callout */}
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
@@ -171,13 +130,7 @@ export const StepPaymentDetails: React.FC<StepPaymentDetailsProps> = ({
             <p className="text-sm font-semibold text-slate-900">Escrow protection</p>
             <p className="mt-1 text-sm text-slate-600">
               Funds are held until the recipient confirms shipment.
-              <button
-                type="button"
-                className="ml-2 text-sm font-medium text-[#4E8C37] hover:underline"
-                onClick={onShowEscrowInfo}
-              >
-                Learn more
-              </button>
+
             </p>
           </div>
         </div>

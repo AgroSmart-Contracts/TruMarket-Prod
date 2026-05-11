@@ -48,13 +48,11 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
-import * as schedule from 'node-schedule';
 import * as webpush from 'web-push';
 
 import { AppModule } from './app.module';
 import { config } from './config';
 import { ErrorsFilter } from './errors.filter';
-import { syncDealsLogs } from './jobs/syncDealsLogs';
 import { logger } from './logger';
 
 // Set VAPID details only if keys are provided, otherwise just log a warning

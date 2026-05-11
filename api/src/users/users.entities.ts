@@ -74,19 +74,14 @@ export class User {
   walletType: string;
   role: number;
   createdAt: Date;
-  kycVerified: boolean;
   desktopNotifications?: NotificationsSettings;
   emailNotifications?: NotificationsSettings;
 
-  /**
-   * True when the supplier has successfully provided valid bank account details.
-   */
-  isBankLinked?: boolean;
-
-  /**
-   * Optional supplier bank account details used for payouts.
-   */
-  bankDetails?: BankDetails;
-
   company?: Company;
+
+  /**
+   * Bank accounts are stored in a dedicated collection.
+   * This field may be populated by services/controllers when needed.
+   */
+  bankAccounts?: any[];
 }

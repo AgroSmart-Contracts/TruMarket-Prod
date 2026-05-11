@@ -73,15 +73,7 @@ export enum MilestoneStatus {
   COMPLETED = "completed",
 }
 
-export enum MilestoneApprovalStatus {
-  Pending = "pending",
-  Submitted = "submitted",
-  Approved = "approved",
-  Denied = "denied",
-}
-
 export interface IMilestoneDetails {
-  approvalStatus: MilestoneApprovalStatus;
   docs: any[];
   id: string;
   status: MilestoneStatus;
