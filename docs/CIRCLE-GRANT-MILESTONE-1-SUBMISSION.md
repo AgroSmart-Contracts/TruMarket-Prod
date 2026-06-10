@@ -188,6 +188,11 @@ All figures are included above in §3 and collected here for export. Source file
 - **Circle Mint** is the right rail for institutions that cannot use self-custody wallets
 - **Off-chain milestones** simplify ops — grant demos should show document verification + fiat payouts, not on-chain milestone fund release
 
+### Restrictions faced on Arc testnet
+- **[Remix IDE](https://remix.ethereum.org) does not support Arc testnet** — we could not compile, deploy, or interact with contracts through Remix against Arc RPC (`5042002`). Deployment and validation relied on **Hardhat** (`protocol/scripts/deploy-arc.ts`) and Arcscan instead.
+- **Auth0 + Web3Auth (email OTP login) does not support Arc testnet** for embedded wallet creation — the authentication stack is wired to EVM chains Web3Auth and Auth0 expose in their dashboards; Arc testnet is not available there today. Buyers and suppliers cannot register or log in with wallets natively on Arc through our existing auth flow.
+- **Workaround for Milestone #1:** on-chain deal identity (`DealsManager`, `DealVault`) runs on **Arc testnet**; **user wallets stay on Base** for now (same EVM address across chains). Deal minting and borrower `donateToDeal` use Arc via `DEAL_CHAIN_*` config and chain-switching in the web app; login and wallet custody remain on Base until Auth0/Web3Auth add Arc support.
+
 ### Next steps (Milestone #2)
 - Deploy `DealsManager` on Arc mainnet within 30 days of Arc mainnet launch
 - Wire CCTP post-bridge into Lagoon pool deposit helper
