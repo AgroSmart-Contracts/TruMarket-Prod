@@ -1,0 +1,333 @@
+{
+  "title": "Shipments Dashboard",
+  "subtitle": "Manage and track all your agricultural trade shipments",
+  "newShipment": "New Shipment",
+  "tabs": {
+    "all": "All",
+    "active": "Active",
+    "finished": "Finished"
+  },
+  "empty": {
+    "noData": "No Data Available",
+    "noDataHint": "Get started by creating your first shipment to track and manage your agricultural trade.",
+    "noShipments": "No Shipments to show",
+    "noActive": "No active Shipments",
+    "noFinished": "No finished shipments to show"
+  },
+  "createShipment": {
+    "title": "Create shipment agreement",
+    "pageTitle": "{{appName}} - Create Agreement",
+    "pageDescription": "Fill in the details below to create your shipment agreement. It will be sent to the selected {{party}} for confirmation, then the smart contract is created so you can track the shipment.",
+    "partySupplier": "supplier",
+    "partyBuyer": "buyer",
+    "steps": {
+      "product": "Product",
+      "values": "Values",
+      "whereWhen": "Where",
+      "supplier": "Supplier",
+      "buyer": "Buyer",
+      "documents": "Documents",
+      "summary": "Summary",
+      "productSubBuy": "What do you want to buy?",
+      "productSubSell": "What do you want to sell?",
+      "valuesSub": "The value of the agreement",
+      "whereSub": "Origin and destination countries",
+      "supplierSub": "Enter the supplier's email address",
+      "buyerSub": "Enter the buyer's email address",
+      "documentsSub": "Upload existing shipment documents (optional)",
+      "summarySub": "Review the form data and confirm the agreement",
+      "supplierHint": "If the supplier doesn't have an account yet, we'll send an invitation. Company details come from their profile or uploaded documents.",
+      "documentsHint": "If you already have invoices, bills of lading, or other trade PDFs, upload them here. We will classify them and fill in any missing details.",
+      "summaryHint": "After your confirmation, the smart contract will be created and you will be able to track/manage the shipment.",
+      "filledProduct": "Product:",
+      "filledAmount": "Amount:",
+      "filledPrice": "Price:",
+      "filledTotal": "Total:",
+      "filledFrom": "From:",
+      "filledTo": "To:",
+      "filledDeparture": "Departure:",
+      "filledArrival": "Arrival:",
+      "filledEmail": "Email address(es):",
+      "filledDocuments": "Documents:",
+      "filledDocumentsNone": "None",
+      "filledDocumentsCount": "{{count}} file(s)"
+    },
+    "fields": {
+      "productName": "Product name",
+      "productNamePlaceholder": "e.g. Organic coffee beans",
+      "productDescription": "Product description",
+      "productDescriptionPlaceholder": "Optional details about the product",
+      "quantityBuy": "How many units are you buying?",
+      "quantitySell": "How many units are you selling?",
+      "quantityPlaceholderBuy": "Units to buy",
+      "quantityPlaceholderSell": "Units to sell",
+      "pricePerUnit": "Price per unit",
+      "pricePerUnitPlaceholder": "Price per unit",
+      "totalAgreementValue": "Total agreement value:",
+      "countryOrigin": "Country of origin",
+      "countryDestination": "Country of destination",
+      "countryPlaceholder": "Country",
+      "departureDate": "What is the expected departure date?",
+      "arrivalDate": "What is the expected arrival date?",
+      "emailAddresses": "E-mail address(es)",
+      "emailPlaceholderSupplier": "Your supplier's email address(es)",
+      "emailPlaceholderBuyer": "Your buyer's email address(es)",
+      "additionalDetails": "Additional Details",
+      "optional": "(optional)",
+      "descriptionPlaceholder": "Please enter description"
+    },
+    "validation": {
+      "required": "This field is required!"
+    },
+    "agreementTitle": "Shipment Agreement",
+    "activationNote": "Shipment will be activated after double-sided supplier and buyer acceptance.",
+    "smartContractNote": "The smart contract will be created automatically and the data will be locked.",
+    "nextStep": "Next step",
+    "cancel": "Cancel",
+    "createButton": "Create shipment agreement",
+    "shipmentSummary": "Shipment summary",
+    "howItWorks": "How it works",
+    "howItWorksSteps": {
+      "create": "Create agreement",
+      "confirm": "Buyer confirmation",
+      "contract": "Smart contract",
+      "track": "Track shipment"
+    },
+    "sections": {
+      "productInformation": "Product information",
+      "shipmentValues": "Shipment values",
+      "originDestination": "Origin and destination",
+      "buyerInformation": "Buyer information",
+      "supplierInformation": "Supplier information",
+      "documents": "Documents"
+    },
+    "summary": {
+      "product": "Product",
+      "amount": "Amount",
+      "pricePerUnit": "Price per unit",
+      "totalValue": "Total value",
+      "origin": "Origin",
+      "destination": "Destination",
+      "buyer": "Buyer",
+      "supplier": "Supplier",
+      "documents": "Documents"
+    },
+    "confirmAgreement": "Confirm agreement",
+    "cloneShipment": "Clone Shipment",
+    "showAgreement": "Show Agreement",
+    "submitChanges": "Submit changes",
+    "resetForm": "Reset form",
+    "addMilestone": "+ Add milestone",
+    "publish": "Publish",
+    "accepted": "Accepted",
+    "documents": {
+      "hint": "Optional: upload PDFs from an existing or completed shipment (commercial invoice, bill of lading, packing list, etc.). We classify them and pre-fill any empty fields in your agreement.",
+      "dropHere": "Drop PDFs here…",
+      "dropOrClick": "Drag & drop PDFs, or click to browse",
+      "pdfOnly": "PDF only, up to 30 MB each",
+      "remove": "Remove",
+      "back": "Back",
+      "analyzing": "Analyzing documents…",
+      "analyzeError": "Could not analyze documents",
+      "notPdf": "\"{{name}}\" is not a PDF",
+      "tooLarge": "\"{{name}}\" exceeds 30 MB",
+      "fieldsFilled": "Filled {{count}} field(s) from your documents",
+      "detectedTitle": "Detected from your documents",
+      "detectedNote": "These values are applied to your agreement and saved on the shipment when you confirm.",
+      "uploadAfterCreateWarn": "Shipment was created but some documents could not be uploaded. You can add them from the shipment page."
+    }
+  },
+  "acceptance": {
+    "supplier": "Supplier acceptance",
+    "buyer": "Buyer acceptance"
+  },
+  "badges": {
+    "new": "New",
+    "notStarted": "Not Started",
+    "newDocuments": "New documents"
+  },
+  "modals": {
+    "acceptAgreement": "Accept the agreement?",
+    "acceptAgreementDesc": "To proceed with creating a smart contract for this shipment, approval from all participating parties is necessary.",
+    "shipmentCreated": "Shipment created",
+    "shipmentCreatedDesc": "Smart contract has been created. Now you can track/manage your shipment.",
+    "viewContract": "View the contract",
+    "goToShipment": "Go to shipment",
+    "submitChanges": "Submit the changes?",
+    "submitChangesSupplier": "Supplier acceptance will be reset, he will receive a changes request via email.",
+    "submitChangesBuyer": "Buyer acceptance will be reset, he will receive a changes request via email.",
+    "notifiedSupplier": "Supplier has been notified via email that you are waiting for the acceptance.",
+    "notifiedBuyer": "Buyer has been notified via email that you are waiting for the acceptance.",
+    "resendEmail": "Resend email",
+    "waitingOthers": "You have accepted the agreement. To proceed to the next step, all other participants must also accept the agreement. Please wait for their confirmation.",
+    "cancelAcceptance": "Cancel your acceptance?",
+    "cancelAcceptanceSupplier": "Supplier will be notified.",
+    "cancelAcceptanceBuyer": "Buyer will be notified.",
+    "resetAndAccept": "Reset changes and accept",
+    "companyData": "Provide your company data to continue",
+    "unsubmittedChanges": "You have ({{count}}) unsubmitted changes."
+  },
+  "drawback": {
+    "banner": {
+      "label": "Estimated recovery",
+      "headline": "Recover up to {{amount}} across {{count}} operations",
+      "subtitle": "Peru export drawback — recover up to 3% of FOB value paid in taxes (SUNAT).",
+      "cta": "View details"
+    },
+    "badge": {
+      "recoverable": "{{amount}} recoverable",
+      "recovered": "{{amount}} recovered"
+    },
+    "summaryStrip": {
+      "potentialRecovery": "Potential recovery",
+      "upTo": "Up to {{amount}}",
+      "recoveryHint": "~{{rate}}% of your FOB export value",
+      "deadlineToClaim": "Deadline to claim",
+      "claimBy": "Claim by {{date}}",
+      "statusLabel": "Status",
+      "status": {
+        "not_started": "Not started",
+        "has_error_in_data": "Has error in data",
+        "primarily_accepted": "Primarily accepted",
+        "pending_tax_approval": "Pending tax approval"
+      },
+      "statusHint": {
+        "not_started": "Upload drawback documents to begin",
+        "has_error_in_data": "Re-upload or add missing documents",
+        "primarily_accepted": "Automatic checks passed",
+        "pending_tax_approval": "Awaiting tax authority approval"
+      },
+      "riskReasonLow": "Requirements on track",
+      "riskReasonLowPartial": "Minor gaps — upload remaining documents",
+      "riskReasonMedium": "Missing required documents",
+      "riskReasonHigh": "Missing required documents",
+      "riskReasonHighDeadline": "Urgent — claim window closing",
+      "riskReasonRejected": "Auto-rejected — document dates violate drawback chronology"
+    },
+    "context": {
+      "daysLeft": "{{count}} days left",
+      "riskLabel": "Claim risk",
+      "risk": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "panel": {
+      "continueUpload": "Continue uploading documents",
+      "requirementsTitle": "Drawback requirements",
+      "requirementsSubtitle": "Upload phase 1–4 documents (imported input, procurement, processing, export). Fruit purchase invoice is optional.",
+      "download": "Download",
+      "downloading": "Downloading…",
+      "onFileNote": "Already on file",
+      "bulkUpload": "Upload all documents",
+      "upload": "Upload file",
+      "uploading": "Uploading…",
+      "uploadSuccess": "Drawback documents uploaded",
+      "uploadError": "Could not upload documents",
+      "uploadPartial": "{{count}} file(s) failed to upload",
+      "uploadNotAvailable": "Upload is available when you are the supplier on the active milestone or have a payment in progress",
+      "pdfOnly": "{{filename}} must be a PDF"
+    },
+    "requirements": {
+      "rawMaterialPurchaseInvoice": "Raw material purchase invoice",
+      "rawMaterialTransportGuide": "Raw material transport guide (to plant)",
+      "processingMaquilaInvoice": "Processing / maquila invoice",
+      "packingMaterialsInvoice": "Packing materials invoices",
+      "packagingContract": "Packaging / maquila contract",
+      "internalPlantTransportGuide": "Internal plant transport guide",
+      "commercialExportInvoice": "Commercial export invoice",
+      "exportTransportDocument": "Export transport document (GRE)",
+      "customsDeclarationDam": "Customs declaration (DAM/DUA/SAD)",
+      "swornDeclarationImportedInputs": "Sworn declaration of imported inputs"
+    },
+    "requirementHints": {
+      "rawMaterialPurchaseInvoice": {
+        "missing": "Required for drawback claim",
+        "pending": "Awaiting admin verification"
+      },
+      "rawMaterialTransportGuide": {
+        "missing": "Required to prove transport into plant",
+        "pending": "Awaiting admin verification"
+      },
+      "processingMaquilaInvoice": {
+        "missing": "Required to prove processing stage",
+        "pending": "Awaiting admin verification"
+      },
+      "packingMaterialsInvoice": {
+        "missing": "Required to reconcile packaging materials",
+        "pending": "Awaiting admin verification"
+      },
+      "packagingContract": {
+        "missing": "Required for maquila/packaging traceability",
+        "pending": "Awaiting admin verification"
+      },
+      "internalPlantTransportGuide": {
+        "missing": "Required for internal movement traceability",
+        "pending": "Awaiting admin verification"
+      },
+      "commercialExportInvoice": {
+        "missing": "Required for export proof",
+        "pending": "Awaiting admin verification"
+      },
+      "exportTransportDocument": {
+        "missing": "Required to prove export movement",
+        "pending": "Awaiting admin verification"
+      },
+      "customsDeclarationDam": {
+        "missing": "Required customs support document",
+        "pending": "Awaiting admin verification"
+      },
+      "swornDeclarationImportedInputs": {
+        "missing": "Required for drawback submission package",
+        "pending": "Awaiting admin verification"
+      }
+    },
+    "status": {
+      "verified": "Verified",
+      "pending": "Pending",
+      "missing": "Missing"
+    },
+    "validation": {
+      "insufficientDocuments": "Insufficient documents",
+      "chronologyIssues": "Chronology issues",
+      "additionalWarnings": "Additional warnings",
+      "knowMore": "Know more",
+      "primaryDecision": "Primary automatic decision:",
+      "finalDecision": "Final decision:",
+      "decision": {
+        "accepted": "Checks passed — pending admin verification of uploads",
+        "rejected": "Blocked — hard stop or chronology failure",
+        "incomplete": "Incomplete — upload or fix required documents"
+      },
+      "final": {
+        "accepted": "Accepted after admin verification of all required files",
+        "pending_admin": "Pending final admin verification (all 10 required files)",
+        "rejected": "Rejected"
+      },
+      "rejection": {
+        "missing_main_product_transport": "No main-product transport guide dated while processing or export documents are already on file.",
+        "export_before_packaging": "Export date is before packaging/processing — export must follow processing.",
+        "transport_after_packaging": "Raw material transport is dated after packaging — transport to plant must come first.",
+        "purchase_after_later_stage": "Purchase date is after transport, packaging, or export.",
+        "labels_transport_date_mismatch": "Labels invoice date does not match labels transport guide date.",
+        "labels_quantity_mismatch": "Labels invoice box count does not match labels transport guide box count.",
+        "labels_after_processing": "Labels invoice date is after processing/maquila started."
+      }
+    }
+  },
+  "toasts": {
+    "maxMilestones": "You can add up to {{count}} milestones.",
+    "maxOtherMilestones": "You can add up to {{count}} \"Other\" milestones.",
+    "minOneMilestone": "Please add at least one milestone.",
+    "minMilestonePercent": "Each milestone must be at least {{percent}}%",
+    "milestoneNames": "Please provide a name for all milestones.",
+    "milestoneSum": "Milestone percentages must add up to 100%.",
+    "created": "Shipment agreement created successfully!",
+    "createError": "Error during creating shipment agreement!",
+    "companyUpdated": "Company data updated successfully!",
+    "changesSubmitted": "Agreement changes submitted.",
+    "changesReset": "Agreement changes reset.",
+    "dealCancelled": "Deal cancelled!"
+  }
+}

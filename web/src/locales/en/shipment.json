@@ -1,0 +1,159 @@
+{
+  "milestonesTitle": "Milestones",
+  "milestoneSteps": {
+    "production_and_fields": "Production and Fields",
+    "packaging_and_process": "Packaging and Process",
+    "finished_product_and_storage": "Finished Product and Storage",
+    "transport_to_port_of_origin": "Transportation to Port of Origin",
+    "port_of_origin": "Port of Origin",
+    "transit": "Transit",
+    "port_of_destination": "Port of Destination"
+  },
+  "documentCount_one": "{{count}} Document",
+  "documentCount_other": "{{count}} Documents",
+  "published": "Published",
+  "vaultDetails": "Vault details",
+  "vaultDetailsDesc": "Address, borrower, and balance information",
+  "addPayment": "Add payment",
+  "viewAgreement": "View agreement",
+  "status": {
+    "active": "Active",
+    "finished": "Finished",
+    "repaid": "Repaid",
+    "proposal": "Proposal"
+  },
+  "publish": "Publish",
+  "complete": "Complete",
+  "deposit": "Deposit",
+  "downloadDocuments": "Download Documents",
+  "uploadDocuments": "Upload Documents",
+  "tabs": {
+    "payments": "Payments",
+    "documents": "Documents",
+    "activity": "Activity",
+    "drawback": "Drawback"
+  },
+  "summary": {
+    "dealDetailsTitle": "Deal details",
+    "supplier": "Supplier:",
+    "buyer": "Buyer:",
+    "supplierLabel": "Supplier",
+    "buyerLabel": "Buyer",
+    "value": "Value:",
+    "valueLabel": "Deal value",
+    "identifier": "Identifier:",
+    "identifierLabel": "Deal ID",
+    "showAgreement": "Show Agreement",
+    "andOthers_one": "and {{count}} other",
+    "andOthers_other": "and {{count}} others"
+  },
+  "paymentNumber": "Payment #{{num}}",
+  "empty": {
+    "noPaymentDocs": "No trade documents uploaded yet.",
+    "noDrawbackDocs": "No drawback process documents uploaded yet.",
+    "noActivity": "Activity timeline will appear here once there are updates for this deal."
+  },
+  "documentsTab": {
+    "drawbackSubtitle": "Peru drawback traceability PDFs from the Drawback tab and deal setup — classified by document type when uploaded.",
+    "tradeSubtitle": "Trade documents from shipment setup, milestones, and payments — classified when uploaded as PDFs.",
+    "subtitle": "Trade documents from shipment setup, milestones, and payments — classified when uploaded as PDFs.",
+    "drawbackEmptyHint": "Upload drawback requirement PDFs from the Drawback tab. Each file is classified (purchase invoice, GRE, DAM, etc.).",
+    "emptyHint": "Upload commercial invoices, bills of lading, packing lists, and other trade PDFs. They are classified automatically.",
+    "uploadSuccess": "Documents uploaded successfully.",
+    "uploadError": "Could not upload documents. Please try again.",
+    "uploadNotAvailable": "Document upload is only available for the supplier on the current milestone.",
+    "visibilityError": "Could not update document visibility.",
+    "linkToPayment": "Upload to payment record",
+    "buyerNote": "Documents marked public by the supplier are visible to all participants."
+  },
+  "labels": {
+    "vaultAddress": "Vault Address",
+    "borrower": "Borrower",
+    "borrowerBalance": "Borrower Balance",
+    "balance": "Balance:",
+    "minDeposit": "Min. Deposit: {{amount}} USDC",
+    "started": "Started:",
+    "approved": "Approved:",
+    "paymentDocuments": "Payment documents",
+    "drawbackDocuments": "Drawback process documents",
+    "dueDate": "Due date",
+    "amount": "Amount",
+    "method": "Method",
+    "status": "Status",
+    "actions": "Actions",
+    "document": "Document",
+    "documents": "Documents",
+    "attachmentName": "Attachment name",
+    "publicToInvestors": "Publicly visible to investors",
+    "new": "new"
+  },
+  "processing": "Processing...",
+  "finance": {
+    "repayRequired": "Shipment is completed. You can repay the funds. {{amount}} {{symbol}} should be deposited in the pool before the shipment is completed.",
+    "repayComplete": "Shipment is completed. The required funds have been successfully repaid. Click \"Complete\" to unlock the funds to be reclaimed by the investors."
+  },
+  "toasts": {
+    "docDeleted": "Deal document successfully deleted!",
+    "docDeleteError": "Error occurred while deleting document!",
+    "descUpdated": "Document description successfully updated!",
+    "descUpdateError": "Error while updating document description",
+    "downloadError": "Could not download this document. Stay logged in and try again.",
+    "publishError": "Error while publishing shipment",
+    "completeError": "Error while completing shipment",
+    "uploadLimit": "Upload limit exceeded: Please upload a maximum of 10 files per submission.",
+    "uploadError": "Error while uploading {{filename}} document, please try again!",
+    "visibilityError": "Error making document visible, please try again!"
+  },
+  "agreementPreview": {
+    "sections": {
+      "product": "Product:",
+      "payment": "Payment:",
+      "tranches": "Tranches:",
+      "routeTimeline": "Route and Timeline:",
+      "supplierData": "Supplier data",
+      "buyerData": "Buyer data",
+      "yourData": "Your Data",
+      "additionalInfo": "Additional Information:"
+    },
+    "fields": {
+      "product": "Product:",
+      "variety": "Variety:",
+      "quality": "Quality:",
+      "presentation": "Presentation:",
+      "amount": "Amount:",
+      "price": "Price:",
+      "investmentAmount": "Investment Amount:",
+      "totalValue": "Total Value:",
+      "modeOfTransport": "Mode of transport:",
+      "from": "From:",
+      "to": "To:",
+      "date": "Date:",
+      "company": "Company:",
+      "country": "Country:",
+      "taxId": "Tax ID:",
+      "participants": "Participants:",
+      "description": "Description:"
+    },
+    "transport": {
+      "sea_freight": "Sea freight",
+      "sea_fright": "Sea freight",
+      "by_air": "By Air"
+    },
+    "trancheSumError": "The sum must be 100%"
+  },
+  "modals": {
+    "agreement": "Agreement #{{id}}",
+    "deleteAttachment": "Delete the attachment \"{{name}}\" ?",
+    "editAttachment": "Edit file attachment",
+    "publishConfirm": "Publishing a shipment will display it in https://finance.trumarket.tech. This action is unreversible. Are you sure you want to publish the deal?",
+    "uploadedDocs": "{{milestone}}: UPLOADED DOCUMENTS"
+  },
+  "validation": {
+    "depositFailed": "Failed submitting deposit. Please try again.",
+    "insufficientEth": "Insufficient ETH balance",
+    "invalidNumber": "Please enter a valid number",
+    "insufficientWallet": "Insufficient wallet balance",
+    "exceedsPayback": "Exceeds amount required to pay back",
+    "minDeposit": "Minimum deposit is {{amount}} USDC"
+  }
+}

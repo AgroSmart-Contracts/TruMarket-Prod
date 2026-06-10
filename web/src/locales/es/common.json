@@ -1,0 +1,44 @@
+{
+  "appName": "TruMarket",
+  "tagline": "Panel de acuerdos institucionales",
+  "logoAlt": "Logo de TruMarket",
+  "logout": "Cerrar sesión",
+  "login": "Iniciar sesión",
+  "notifications": "Notificaciones",
+  "cancel": "Cancelar",
+  "accept": "Aceptar",
+  "submit": "Enviar",
+  "save": "Guardar",
+  "saving": "Guardando...",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "close": "Cerrar",
+  "ok": "Aceptar",
+  "yes": "Sí",
+  "no": "No",
+  "back": "Atrás",
+  "continue": "Continuar",
+  "done": "Listo",
+  "show": "Mostrar",
+  "hide": "Ocultar",
+  "download": "Descargar",
+  "downloadFile": "Descargar archivo",
+  "downloadAgain": "Descargar de nuevo",
+  "goToDashboard": "Ir al panel",
+  "pageNotFound": "Esta página no existe",
+  "select": "Seleccionar",
+  "roles": {
+    "supplier": "Proveedor",
+    "buyer": "Comprador"
+  },
+  "terms": {
+    "accept": "Acepto",
+    "termsAndConditions": "Términos y condiciones",
+    "and": "y",
+    "privacyPolicy": "Política de privacidad"
+  },
+  "errors": {
+    "downloadFailed": "Error al descargar. Mantén la sesión iniciada y usa este botón (los enlaces directos a blob y las descargas en segundo plano están bloqueados por el navegador).",
+    "downloadHint": "Si no ves el archivo, revisa las descargas bloqueadas en la barra de direcciones del navegador."
+  }
+}

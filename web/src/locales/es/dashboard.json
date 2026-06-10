@@ -1,0 +1,333 @@
+{
+  "title": "Panel de envíos",
+  "subtitle": "Gestiona y rastrea todos tus envíos de comercio agrícola",
+  "newShipment": "Nuevo envío",
+  "tabs": {
+    "all": "Todos",
+    "active": "Activos",
+    "finished": "Finalizados"
+  },
+  "empty": {
+    "noData": "No hay datos disponibles",
+    "noDataHint": "Comienza creando tu primer envío para rastrear y gestionar tu comercio agrícola.",
+    "noShipments": "No hay envíos para mostrar",
+    "noActive": "No hay envíos activos",
+    "noFinished": "No hay envíos finalizados para mostrar"
+  },
+  "createShipment": {
+    "title": "Crear acuerdo de envío",
+    "pageTitle": "{{appName}} - Crear acuerdo",
+    "pageDescription": "El acuerdo enviado se enviará al {{party}} seleccionado. Tras su confirmación, se creará el contrato inteligente y podrás rastrear el envío.",
+    "partySupplier": "proveedor",
+    "partyBuyer": "comprador",
+    "steps": {
+      "product": "Producto",
+      "values": "Valores",
+      "whereWhen": "Dónde",
+      "supplier": "Proveedor",
+      "buyer": "Comprador",
+      "documents": "Documentos",
+      "summary": "Resumen",
+      "productSubBuy": "¿Qué deseas comprar?",
+      "productSubSell": "¿Qué deseas vender?",
+      "valuesSub": "El valor del acuerdo",
+      "whereSub": "Países de origen y destino",
+      "supplierSub": "Introduce el correo del proveedor",
+      "buyerSub": "Introduce el correo del comprador",
+      "documentsSub": "Sube documentos del envío existentes (opcional)",
+      "summarySub": "Revisa los datos del formulario y confirma el acuerdo",
+      "supplierHint": "Si el proveedor aún no tiene cuenta, enviaremos una invitación. Los datos de la empresa provienen de su perfil o de los documentos subidos.",
+      "documentsHint": "Si ya tienes facturas, conocimientos de embarque u otros PDF comerciales, súbelos aquí. Los clasificaremos y completaremos los datos faltantes.",
+      "summaryHint": "Tras tu confirmación, se creará el contrato inteligente y podrás rastrear y gestionar el envío.",
+      "filledProduct": "Producto:",
+      "filledAmount": "Cantidad:",
+      "filledPrice": "Precio:",
+      "filledTotal": "Total:",
+      "filledFrom": "Desde:",
+      "filledTo": "Hasta:",
+      "filledDeparture": "Salida:",
+      "filledArrival": "Llegada:",
+      "filledEmail": "Correo(s):",
+      "filledDocuments": "Documentos:",
+      "filledDocumentsNone": "Ninguno",
+      "filledDocumentsCount": "{{count}} archivo(s)"
+    },
+    "fields": {
+      "productName": "Nombre del producto",
+      "productNamePlaceholder": "p. ej. Café orgánico en grano",
+      "productDescription": "Descripción del producto",
+      "productDescriptionPlaceholder": "Detalles opcionales del producto",
+      "quantityBuy": "¿Cuántas unidades compras?",
+      "quantitySell": "¿Cuántas unidades vendes?",
+      "quantityPlaceholderBuy": "Unidades a comprar",
+      "quantityPlaceholderSell": "Unidades a vender",
+      "pricePerUnit": "Precio por unidad",
+      "pricePerUnitPlaceholder": "Precio por unidad",
+      "totalAgreementValue": "Valor total del acuerdo:",
+      "countryOrigin": "País de origen",
+      "countryDestination": "País de destino",
+      "countryPlaceholder": "País",
+      "departureDate": "¿Cuál es la fecha de salida prevista?",
+      "arrivalDate": "¿Cuál es la fecha de llegada prevista?",
+      "emailAddresses": "Correo(s) electrónico(s)",
+      "emailPlaceholderSupplier": "Correo(s) de tu proveedor",
+      "emailPlaceholderBuyer": "Correo(s) de tu comprador",
+      "additionalDetails": "Detalles adicionales",
+      "optional": "(opcional)",
+      "descriptionPlaceholder": "Introduce una descripción"
+    },
+    "validation": {
+      "required": "¡Este campo es obligatorio!"
+    },
+    "agreementTitle": "Acuerdo de envío",
+    "activationNote": "El envío se activará tras la aceptación bilateral del proveedor y el comprador.",
+    "smartContractNote": "El contrato inteligente se creará automáticamente y los datos quedarán bloqueados.",
+    "nextStep": "Siguiente paso",
+    "cancel": "Cancelar",
+    "createButton": "Crear acuerdo de envío",
+    "shipmentSummary": "Resumen del envío",
+    "howItWorks": "Cómo funciona",
+    "howItWorksSteps": {
+      "create": "Crear acuerdo",
+      "confirm": "Confirmación del comprador",
+      "contract": "Contrato inteligente",
+      "track": "Rastrear envío"
+    },
+    "sections": {
+      "productInformation": "Información del producto",
+      "shipmentValues": "Valores del envío",
+      "originDestination": "Origen y destino",
+      "buyerInformation": "Información del comprador",
+      "supplierInformation": "Información del proveedor",
+      "documents": "Documentos"
+    },
+    "summary": {
+      "product": "Producto",
+      "amount": "Cantidad",
+      "pricePerUnit": "Precio por unidad",
+      "totalValue": "Valor total",
+      "origin": "Origen",
+      "destination": "Destino",
+      "buyer": "Comprador",
+      "supplier": "Proveedor",
+      "documents": "Documentos"
+    },
+    "confirmAgreement": "Confirmar acuerdo",
+    "cloneShipment": "Clonar envío",
+    "showAgreement": "Ver acuerdo",
+    "submitChanges": "Enviar cambios",
+    "resetForm": "Restablecer formulario",
+    "addMilestone": "+ Añadir hito",
+    "publish": "Publicar",
+    "accepted": "Aceptado",
+    "documents": {
+      "hint": "Opcional: sube PDFs de un envío existente o finalizado (factura comercial, conocimiento de embarque, lista de empaque, etc.). Los clasificamos y completamos los campos vacíos del acuerdo.",
+      "dropHere": "Suelta los PDF aquí…",
+      "dropOrClick": "Arrastra y suelta PDF, o haz clic para buscar",
+      "pdfOnly": "Solo PDF, hasta 30 MB cada uno",
+      "remove": "Quitar",
+      "back": "Atrás",
+      "analyzing": "Analizando documentos…",
+      "analyzeError": "No se pudieron analizar los documentos",
+      "notPdf": "\"{{name}}\" no es un PDF",
+      "tooLarge": "\"{{name}}\" supera 30 MB",
+      "fieldsFilled": "Se completaron {{count}} campo(s) desde tus documentos",
+      "detectedTitle": "Detectado en tus documentos",
+      "detectedNote": "Estos valores se aplican al acuerdo y se guardan en el envío al confirmar.",
+      "uploadAfterCreateWarn": "El envío se creó pero no se pudieron subir algunos documentos. Puedes añadirlos desde la página del envío."
+    }
+  },
+  "acceptance": {
+    "supplier": "Aceptación del proveedor",
+    "buyer": "Aceptación del comprador"
+  },
+  "badges": {
+    "new": "Nuevo",
+    "notStarted": "No iniciado",
+    "newDocuments": "Nuevos documentos"
+  },
+  "modals": {
+    "acceptAgreement": "¿Aceptar el acuerdo?",
+    "acceptAgreementDesc": "Para continuar con la creación de un contrato inteligente para este envío, se requiere la aprobación de todas las partes participantes.",
+    "shipmentCreated": "Envío creado",
+    "shipmentCreatedDesc": "Se ha creado el contrato inteligente. Ahora puedes rastrear y gestionar tu envío.",
+    "viewContract": "Ver el contrato",
+    "goToShipment": "Ir al envío",
+    "submitChanges": "¿Enviar los cambios?",
+    "submitChangesSupplier": "Se restablecerá la aceptación del proveedor; recibirá una solicitud de cambios por correo.",
+    "submitChangesBuyer": "Se restablecerá la aceptación del comprador; recibirá una solicitud de cambios por correo.",
+    "notifiedSupplier": "Se ha notificado al proveedor por correo que esperas su aceptación.",
+    "notifiedBuyer": "Se ha notificado al comprador por correo que esperas su aceptación.",
+    "resendEmail": "Reenviar correo",
+    "waitingOthers": "Has aceptado el acuerdo. Para continuar, el resto de participantes también deben aceptarlo. Espera su confirmación.",
+    "cancelAcceptance": "¿Cancelar tu aceptación?",
+    "cancelAcceptanceSupplier": "Se notificará al proveedor.",
+    "cancelAcceptanceBuyer": "Se notificará al comprador.",
+    "resetAndAccept": "Restablecer cambios y aceptar",
+    "companyData": "Proporciona los datos de tu empresa para continuar",
+    "unsubmittedChanges": "Tienes ({{count}}) cambios sin enviar."
+  },
+  "drawback": {
+    "banner": {
+      "label": "Recuperación estimada",
+      "headline": "Tienes hasta {{amount}} por recuperar en {{count}} operaciones",
+      "subtitle": "Drawback de exportación en Perú — recupera hasta el 3% del valor FOB pagado en impuestos (SUNAT).",
+      "cta": "Ver detalle"
+    },
+    "badge": {
+      "recoverable": "{{amount}} recuperables",
+      "recovered": "{{amount}} recuperados"
+    },
+    "summaryStrip": {
+      "potentialRecovery": "Recuperación potencial",
+      "upTo": "Hasta {{amount}}",
+      "recoveryHint": "~{{rate}}% de tu valor FOB de exportación",
+      "deadlineToClaim": "Plazo para reclamar",
+      "claimBy": "Reclamar antes del {{date}}",
+      "statusLabel": "Estado",
+      "status": {
+        "not_started": "No iniciado",
+        "has_error_in_data": "Error en los datos",
+        "primarily_accepted": "Aceptado en revisión primaria",
+        "pending_tax_approval": "Pendiente de aprobación tributaria"
+      },
+      "statusHint": {
+        "not_started": "Sube documentos de drawback para comenzar",
+        "has_error_in_data": "Vuelve a subir o añade documentos faltantes",
+        "primarily_accepted": "Controles automáticos superados",
+        "pending_tax_approval": "En espera de aprobación de la autoridad tributaria"
+      },
+      "riskReasonLow": "Requisitos en orden",
+      "riskReasonLowPartial": "Faltan pocos documentos por subir",
+      "riskReasonMedium": "Faltan documentos requeridos",
+      "riskReasonHigh": "Faltan documentos requeridos",
+      "riskReasonHighDeadline": "Urgente — el plazo está por vencer",
+      "riskReasonRejected": "Rechazo automático — las fechas no respetan la cronología del drawback"
+    },
+    "context": {
+      "daysLeft": "{{count}} días restantes",
+      "riskLabel": "Riesgo del reclamo",
+      "risk": {
+        "low": "Bajo",
+        "medium": "Medio",
+        "high": "Alto"
+      }
+    },
+    "panel": {
+      "continueUpload": "Continuar subiendo documentos",
+      "requirementsTitle": "Requisitos de drawback",
+      "requirementsSubtitle": "Sube documentos de las fases 1–4 (insumo importado, compra, procesamiento, exportación). La factura de compra de fruta es opcional.",
+      "download": "Descargar",
+      "downloading": "Descargando…",
+      "onFileNote": "Ya está en el expediente",
+      "bulkUpload": "Subir todos los documentos",
+      "upload": "Subir archivo",
+      "uploading": "Subiendo…",
+      "uploadSuccess": "Documentos de drawback subidos",
+      "uploadError": "No se pudieron subir los documentos",
+      "uploadPartial": "{{count}} archivo(s) no se subieron",
+      "uploadNotAvailable": "La subida está disponible si eres el proveedor en el hito activo o tienes un pago en curso",
+      "pdfOnly": "{{filename}} debe ser un PDF"
+    },
+    "requirements": {
+      "rawMaterialPurchaseInvoice": "Factura de compra de materia prima",
+      "rawMaterialTransportGuide": "Guía de remisión de materia prima (a planta)",
+      "processingMaquilaInvoice": "Factura de procesamiento / maquila",
+      "packingMaterialsInvoice": "Facturas de materiales de empaque",
+      "packagingContract": "Contrato de empaque / maquila",
+      "internalPlantTransportGuide": "Guía de remisión interna de planta",
+      "commercialExportInvoice": "Factura comercial de exportación",
+      "exportTransportDocument": "Documento de transporte de exportación (GRE)",
+      "customsDeclarationDam": "Declaración aduanera (DAM/DUA/SAD)",
+      "swornDeclarationImportedInputs": "Declaración jurada de insumos importados"
+    },
+    "requirementHints": {
+      "rawMaterialPurchaseInvoice": {
+        "missing": "Requerido para el reclamo de drawback",
+        "pending": "En espera de verificación del administrador"
+      },
+      "rawMaterialTransportGuide": {
+        "missing": "Requerido para sustentar el traslado a planta",
+        "pending": "En espera de verificación del administrador"
+      },
+      "processingMaquilaInvoice": {
+        "missing": "Requerido para sustentar la etapa de procesamiento",
+        "pending": "En espera de verificación del administrador"
+      },
+      "packingMaterialsInvoice": {
+        "missing": "Requerido para conciliar materiales de empaque",
+        "pending": "En espera de verificación del administrador"
+      },
+      "packagingContract": {
+        "missing": "Requerido para trazabilidad de maquila/empaque",
+        "pending": "En espera de verificación del administrador"
+      },
+      "internalPlantTransportGuide": {
+        "missing": "Requerido para trazabilidad de movimientos internos",
+        "pending": "En espera de verificación del administrador"
+      },
+      "commercialExportInvoice": {
+        "missing": "Requerido como prueba de exportación",
+        "pending": "En espera de verificación del administrador"
+      },
+      "exportTransportDocument": {
+        "missing": "Requerido para sustentar transporte de exportación",
+        "pending": "En espera de verificación del administrador"
+      },
+      "customsDeclarationDam": {
+        "missing": "Requerido como documento aduanero",
+        "pending": "En espera de verificación del administrador"
+      },
+      "swornDeclarationImportedInputs": {
+        "missing": "Requerido para el expediente de drawback",
+        "pending": "En espera de verificación del administrador"
+      }
+    },
+    "status": {
+      "verified": "Verificado",
+      "pending": "Pendiente",
+      "missing": "Falta"
+    },
+    "validation": {
+      "insufficientDocuments": "Documentos insuficientes",
+      "chronologyIssues": "Problemas de cronología",
+      "additionalWarnings": "Advertencias adicionales",
+      "knowMore": "Saber más",
+      "primaryDecision": "Decisión automática primaria:",
+      "finalDecision": "Decisión final:",
+      "decision": {
+        "accepted": "Controles superados — pendiente verificación admin",
+        "rejected": "Bloqueado — stop duro o fallo de cronología",
+        "incomplete": "Incompleto — subir o corregir documentos"
+      },
+      "final": {
+        "accepted": "Aceptado tras verificación administrativa de todos los archivos requeridos",
+        "pending_admin": "Pendiente de validación final del administrador (10 archivos requeridos)",
+        "rejected": "Rechazado"
+      },
+      "rejection": {
+        "missing_main_product_transport": "No hay guía de transporte de materia prima fechada mientras ya existen documentos de procesamiento o exportación.",
+        "export_before_packaging": "La fecha de exportación es anterior al empaque/procesamiento — la exportación debe ser posterior.",
+        "transport_after_packaging": "El transporte de materia prima está fechado después del empaque — el traslado a planta debe ser anterior.",
+        "purchase_after_later_stage": "La fecha de compra es posterior al transporte, empaque o exportación.",
+        "labels_transport_date_mismatch": "La fecha de la factura de etiquetas no coincide con la fecha de la guía de etiquetas.",
+        "labels_quantity_mismatch": "El número de cajas de la factura de etiquetas no coincide con el número de cajas de la guía de etiquetas.",
+        "labels_after_processing": "La fecha de la factura de etiquetas es posterior al inicio del procesamiento/maquila."
+      }
+    }
+  },
+  "toasts": {
+    "maxMilestones": "Puedes añadir hasta {{count}} hitos.",
+    "maxOtherMilestones": "Puedes añadir hasta {{count}} hitos \"Otros\".",
+    "minOneMilestone": "Añade al menos un hito.",
+    "minMilestonePercent": "Cada hito debe ser al menos {{percent}}%",
+    "milestoneNames": "Proporciona un nombre para todos los hitos.",
+    "milestoneSum": "Los porcentajes de los hitos deben sumar 100%.",
+    "created": "¡Acuerdo de envío creado correctamente!",
+    "createError": "¡Error al crear el acuerdo de envío!",
+    "companyUpdated": "¡Datos de la empresa actualizados correctamente!",
+    "changesSubmitted": "Cambios del acuerdo enviados.",
+    "changesReset": "Cambios del acuerdo restablecidos.",
+    "dealCancelled": "¡Acuerdo cancelado!"
+  }
+}

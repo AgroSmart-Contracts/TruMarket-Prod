@@ -1,0 +1,60 @@
+{
+  "uploadTitle": "Upload Payment Documents",
+  "requiredDocuments": "Required documents",
+  "paymentDocuments": "Payment Documents",
+  "uploadDocuments": "Upload Documents",
+  "uploading": "Uploading...",
+  "remove": "Remove",
+  "clearAll": "Clear all",
+  "choose": "Choose",
+  "downloading": "Downloading…",
+  "noPaymentsBuyer": "No payments found. Click \"Add payment\" to create one.",
+  "noPayments": "No payments found.",
+  "actions": {
+    "supplierUploading": "Supplier uploading documents",
+    "documentsUnderReview": "Documents under review",
+    "awaitingVerification": "Awaiting verification"
+  },
+  "uploadHint": "Please upload documents related to this payment for verification.",
+  "uploadHintDealLevel": "Trade documents are shared across the whole shipment. You only need to upload each type once — later payments reuse documents already on file.",
+  "uploadInfoDealLevel": "Upload only document types that are still missing for this shipment. Types already uploaded (e.g. at shipment creation) are linked automatically — no need to upload again.",
+  "shipmentDocsAvailable": "Some required documents are already on this shipment from a previous upload. You can attach them to this payment without re-uploading.",
+  "attachFromShipment": "Attach shipment documents",
+  "syncingFromShipment": "Attaching…",
+  "loadingCoverage": "Loading document status…",
+  "dragDropSuffix": "or drag and drop",
+  "cancel": "Cancel",
+  "dragDrop": "Choose or drag and drop",
+  "pdfMax": "PDF (max 50 MB)",
+  "filesSelected_one": "{{count}} file selected",
+  "filesSelected_other": "{{count}} files selected",
+  "bankTransfer": "Bank transfer",
+  "agroPay": "AgroPay",
+  "status": {
+    "requested": "Payment Requested",
+    "inProgress": "In Progress",
+    "verifying": "Verifying Documents",
+    "completed": "Completed",
+    "failed": "Failed",
+    "unknown": "Unknown",
+    "uploaded": "Uploaded",
+    "onShipment": "On shipment",
+    "pending": "Pending"
+  },
+  "docTypes": {
+    "commercialInvoice": "Commercial Invoice",
+    "packingList": "Packing List",
+    "billOfLading": "Bill of Lading or AWB",
+    "phytosanitary": "Phytosanitary Certificate",
+    "certificateOfOrigin": "Certificate of Origin"
+  },
+  "toasts": {
+    "notPdf": "\"{{filename}}\" is not a PDF file",
+    "tooLarge": "\"{{filename}}\" exceeds 50 MB",
+    "selectFile": "Please select at least one file to upload",
+    "uploadSuccess": "Documents uploaded successfully!",
+    "uploadFailed": "Failed to upload document",
+    "syncSuccess": "Shipment documents attached to this payment.",
+    "syncFailed": "Failed to attach shipment documents"
+  }
+}

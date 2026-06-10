@@ -1,0 +1,44 @@
+{
+  "appName": "TruMarket",
+  "tagline": "Institutional Deal Dashboard",
+  "logoAlt": "TruMarket Logo",
+  "logout": "Logout",
+  "login": "Login",
+  "notifications": "Notifications",
+  "cancel": "Cancel",
+  "accept": "Accept",
+  "submit": "Submit",
+  "save": "Save",
+  "saving": "Saving...",
+  "delete": "Delete",
+  "edit": "Edit",
+  "close": "Close",
+  "ok": "Ok",
+  "yes": "Yes",
+  "no": "No",
+  "back": "Back",
+  "continue": "Continue",
+  "done": "Done",
+  "show": "Show",
+  "hide": "Hide",
+  "download": "Download",
+  "downloadFile": "Download file",
+  "downloadAgain": "Download again",
+  "goToDashboard": "Go to dashboard",
+  "pageNotFound": "This page doesn't exist",
+  "select": "Select",
+  "roles": {
+    "supplier": "Supplier",
+    "buyer": "Buyer"
+  },
+  "terms": {
+    "accept": "I accept",
+    "termsAndConditions": "Terms and Conditions",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "errors": {
+    "downloadFailed": "Download failed. Stay logged in and use this button (direct blob links and background downloads are blocked by the browser).",
+    "downloadHint": "If you do not see the file, check blocked downloads in your browser's address bar."
+  }
+}

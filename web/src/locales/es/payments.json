@@ -1,0 +1,60 @@
+{
+  "uploadTitle": "Subir documentos de pago",
+  "requiredDocuments": "Documentos requeridos",
+  "paymentDocuments": "Documentos de pago",
+  "uploadDocuments": "Subir documentos",
+  "uploading": "Subiendo...",
+  "remove": "Quitar",
+  "clearAll": "Borrar todo",
+  "choose": "Elegir",
+  "downloading": "Descargando…",
+  "noPaymentsBuyer": "No se encontraron pagos. Haz clic en \"Añadir pago\" para crear uno.",
+  "noPayments": "No se encontraron pagos.",
+  "actions": {
+    "supplierUploading": "El proveedor está subiendo documentos",
+    "documentsUnderReview": "Documentos en revisión",
+    "awaitingVerification": "En espera de verificación"
+  },
+  "uploadHint": "Sube documentos relacionados con este pago para su verificación.",
+  "uploadHintDealLevel": "Los documentos comerciales se comparten en todo el envío. Cada tipo solo se sube una vez; los pagos posteriores reutilizan los documentos ya registrados.",
+  "uploadInfoDealLevel": "Sube solo los tipos que aún faltan en este envío. Los tipos ya subidos (p. ej. al crear el envío) se vinculan automáticamente; no hace falta volver a subirlos.",
+  "shipmentDocsAvailable": "Algunos documentos requeridos ya están en este envío por una subida anterior. Puedes vincularlos a este pago sin volver a subirlos.",
+  "attachFromShipment": "Vincular documentos del envío",
+  "syncingFromShipment": "Vinculando…",
+  "loadingCoverage": "Cargando estado de documentos…",
+  "dragDropSuffix": "o arrastra y suelta",
+  "cancel": "Cancelar",
+  "dragDrop": "Elige o arrastra y suelta",
+  "pdfMax": "PDF (máx. 50 MB)",
+  "filesSelected_one": "{{count}} archivo seleccionado",
+  "filesSelected_other": "{{count}} archivos seleccionados",
+  "bankTransfer": "Transferencia bancaria",
+  "agroPay": "AgroPay",
+  "status": {
+    "requested": "Pago solicitado",
+    "inProgress": "En curso",
+    "verifying": "Verificando documentos",
+    "completed": "Completado",
+    "failed": "Fallido",
+    "unknown": "Desconocido",
+    "uploaded": "Subido",
+    "onShipment": "En el envío",
+    "pending": "Pendiente"
+  },
+  "docTypes": {
+    "commercialInvoice": "Factura comercial",
+    "packingList": "Lista de empaque",
+    "billOfLading": "Conocimiento de embarque o AWB",
+    "phytosanitary": "Certificado fitosanitario",
+    "certificateOfOrigin": "Certificado de origen"
+  },
+  "toasts": {
+    "notPdf": "\"{{filename}}\" no es un archivo PDF",
+    "tooLarge": "\"{{filename}}\" supera 50 MB",
+    "selectFile": "Selecciona al menos un archivo para subir",
+    "uploadSuccess": "¡Documentos subidos correctamente!",
+    "uploadFailed": "Error al subir el documento",
+    "syncSuccess": "Documentos del envío vinculados a este pago.",
+    "syncFailed": "Error al vincular documentos del envío"
+  }
+}

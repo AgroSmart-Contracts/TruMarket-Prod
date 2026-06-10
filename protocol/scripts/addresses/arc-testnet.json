@@ -1,0 +1,10 @@
+{
+  "network": "arcTestnet",
+  "chainId": 5042002,
+  "deployer": "0x916d9dF94a82B63aa95761A9C017fAD46492FEC8",
+  "dealVaultFactory": "0x5Dacdbb79A558f9395367badDc6d351053D58B08",
+  "dealsManager": "0x0F1a18BE854e9924158474fB6828287eAB10F6F6",
+  "usdc": "0x3600000000000000000000000000000000000000",
+  "deployedAt": "2026-06-10T14:46:22.185Z",
+  "explorer": "https://testnet.arcscan.app/address/0x0F1a18BE854e9924158474fB6828287eAB10F6F6"
+}

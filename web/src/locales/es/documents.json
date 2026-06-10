@@ -1,0 +1,12 @@
+{
+  "uploadDocuments": "Subir documentos",
+  "downloadDocuments": "Descargar documentos",
+  "makePublic": "Hacer público",
+  "makePrivate": "Hacer privado",
+  "supplierDocsHint": "Los documentos del proveedor se mostrarán aquí",
+  "dropHint": "Arrastra documentos o imágenes aquí o haz clic para subir",
+  "deleteAttachment": "¿Eliminar el adjunto \"{{name}}\"?",
+  "editAttachment": "Editar adjunto",
+  "attachmentName": "Nombre del adjunto",
+  "publicToInvestors": "Visible públicamente para inversores"
+}

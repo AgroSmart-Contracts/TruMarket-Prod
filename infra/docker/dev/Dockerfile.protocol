@@ -1,0 +1,20 @@
+FROM node:20.11-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY ./protocol/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the project files
+COPY ./protocol .
+
+EXPOSE 8545
+
+RUN npm run compile
+
+# Run local Hardhat node
+CMD ["sh", "-c", "npm run local:node & sleep 5 && npm run local:deploy  && tail -f /dev/null"]

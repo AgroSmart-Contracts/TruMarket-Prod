@@ -1,0 +1,15 @@
+{
+  "agreements": "Acuerdos",
+  "users": "Usuarios",
+  "searchByEmail": "Buscar acuerdo por correo de participantes",
+  "searchByStatus": "Buscar acuerdo por estado",
+  "nftLogs": "Registros NFT",
+  "details": "Detalles",
+  "byAir": "Por avión",
+  "bySea": "Por mar",
+  "notMinted": "No acuñado",
+  "deleteConfirm": "¿Seguro que quieres eliminar este acuerdo?",
+  "deleteIrreversible": "Esta acción es irreversible",
+  "dealDeleted": "¡Acuerdo eliminado correctamente!",
+  "dealDeleteError": "¡Error al eliminar el acuerdo!"
+}

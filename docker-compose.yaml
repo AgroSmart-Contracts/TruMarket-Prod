@@ -1,0 +1,97 @@
+version: '3'
+services:
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: ./infra/docker/dev/Dockerfile.web
+  #   networks:
+  #     - trumarket-network
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - /app/node_modules
+  #     - ./web/src:/app/web/src
+  #     - ./logs/web:/app/logs
+  #   env_file:
+  #     - .env.web
+  #   depends_on:
+  #     - api
+  api:
+    build:
+      context: .
+      dockerfile: ./infra/docker/dev/Dockerfile.api
+    networks:
+      - trumarket-network
+    ports:
+      - 4000:4000
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+      - ./api/src:/app/api/src
+      - ./logs/api:/app/logs
+    environment:
+      - DATABASE_URL=mongodb://mongo/trumarket-api
+      - PORT=4000
+      - COMMIT_HASH=${COMMIT_HASH}
+      - S3_BUCKET=api-bucket
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      - AUTOMATIC_DEALS_ACCEPTANCE=true
+    depends_on:
+      - mongo
+      - protocol
+  mongo:
+    image: mongo
+    networks:
+      - trumarket-network
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data:/data/db
+  localstack:
+    image: localstack/localstack
+    environment:
+      - SERVICES=s3
+    ports:
+      - 4566:4566 # Expose the S3 port
+    volumes:
+      - './.localstack:/var/lib/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - ./logs/mongodb:/var/log/mongodb
+    networks:
+      - trumarket-network
+  aws-cli:
+    image: amazon/aws-cli
+    depends_on:
+      - localstack
+    networks:
+      - trumarket-network
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    entrypoint: /bin/sh -c
+    command: >
+      "
+        aws --endpoint-url=http://localstack:4566 s3api create-bucket --bucket api-bucket --region us-east-1
+      "
+  protocol:
+    build:
+      context: .
+      dockerfile: ./infra/docker/dev/Dockerfile.protocol
+    networks:
+      - trumarket-network
+    ports:
+      - 8545:8545
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - mongo
+volumes:
+  mongodb_data:
+networks:
+  trumarket-network:

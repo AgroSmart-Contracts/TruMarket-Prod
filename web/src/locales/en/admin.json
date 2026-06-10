@@ -1,0 +1,15 @@
+{
+  "agreements": "Agreements",
+  "users": "Users",
+  "searchByEmail": "Search agreement by participants email",
+  "searchByStatus": "Search agreement by status",
+  "nftLogs": "Nft Logs",
+  "details": "Details",
+  "byAir": "By Air",
+  "bySea": "By Sea",
+  "notMinted": "Not Minted",
+  "deleteConfirm": "Are you sure that you want to delete this agreement?",
+  "deleteIrreversible": "This action is irreversible",
+  "dealDeleted": "Deal deleted successfully!",
+  "dealDeleteError": "Error ocurred while deleting the deal!"
+}

@@ -1,0 +1,159 @@
+{
+  "milestonesTitle": "Hitos",
+  "milestoneSteps": {
+    "production_and_fields": "Producción y campos",
+    "packaging_and_process": "Empaque y proceso",
+    "finished_product_and_storage": "Producto terminado y almacenamiento",
+    "transport_to_port_of_origin": "Transporte al puerto de origen",
+    "port_of_origin": "Puerto de origen",
+    "transit": "Tránsito",
+    "port_of_destination": "Puerto de destino"
+  },
+  "documentCount_one": "{{count}} documento",
+  "documentCount_other": "{{count}} documentos",
+  "published": "Publicado",
+  "vaultDetails": "Detalles de la bóveda",
+  "vaultDetailsDesc": "Dirección, prestatario e información de saldo",
+  "addPayment": "Añadir pago",
+  "viewAgreement": "Ver acuerdo",
+  "status": {
+    "active": "Activo",
+    "finished": "Finalizado",
+    "repaid": "Reembolsado",
+    "proposal": "Propuesta"
+  },
+  "publish": "Publicar",
+  "complete": "Completar",
+  "deposit": "Depositar",
+  "downloadDocuments": "Descargar documentos",
+  "uploadDocuments": "Subir documentos",
+  "tabs": {
+    "payments": "Pagos",
+    "documents": "Documentos",
+    "activity": "Actividad",
+    "drawback": "Drawback"
+  },
+  "summary": {
+    "dealDetailsTitle": "Detalles del acuerdo",
+    "supplier": "Proveedor:",
+    "buyer": "Comprador:",
+    "supplierLabel": "Proveedor",
+    "buyerLabel": "Comprador",
+    "value": "Valor:",
+    "valueLabel": "Valor del acuerdo",
+    "identifier": "Identificador:",
+    "identifierLabel": "ID del acuerdo",
+    "showAgreement": "Ver acuerdo",
+    "andOthers_one": "y {{count}} más",
+    "andOthers_other": "y {{count}} más"
+  },
+  "paymentNumber": "Pago #{{num}}",
+  "empty": {
+    "noPaymentDocs": "Aún no se han subido documentos comerciales.",
+    "noDrawbackDocs": "Aún no se han subido documentos del proceso de drawback.",
+    "noActivity": "La línea de tiempo de actividad aparecerá aquí cuando haya actualizaciones para este acuerdo."
+  },
+  "documentsTab": {
+    "drawbackSubtitle": "PDFs de trazabilidad de drawback Perú desde la pestaña Drawback y la creación del acuerdo — clasificados por tipo al subirlos.",
+    "tradeSubtitle": "Documentos comerciales del envío, hitos y pagos — clasificados al subir PDFs.",
+    "subtitle": "Documentos comerciales del envío, hitos y pagos — clasificados al subir PDFs.",
+    "drawbackEmptyHint": "Sube los PDFs de requisitos de drawback desde la pestaña Drawback. Cada archivo se clasifica (factura de compra, GRE, DAM, etc.).",
+    "emptyHint": "Sube facturas comerciales, conocimientos de embarque, listas de empaque y otros PDFs. Se clasifican automáticamente.",
+    "uploadSuccess": "Documentos subidos correctamente.",
+    "uploadError": "No se pudieron subir los documentos. Inténtalo de nuevo.",
+    "uploadNotAvailable": "La subida solo está disponible para el proveedor en el hito actual.",
+    "visibilityError": "No se pudo actualizar la visibilidad del documento.",
+    "linkToPayment": "Subir al registro de pago",
+    "buyerNote": "Los documentos marcados como públicos por el proveedor son visibles para todos los participantes."
+  },
+  "labels": {
+    "vaultAddress": "Dirección de la bóveda",
+    "borrower": "Prestatario",
+    "borrowerBalance": "Saldo del prestatario",
+    "balance": "Saldo:",
+    "minDeposit": "Depósito mín.: {{amount}} USDC",
+    "started": "Iniciado:",
+    "approved": "Aprobado:",
+    "paymentDocuments": "Documentos de pago",
+    "drawbackDocuments": "Documentos del proceso de drawback",
+    "dueDate": "Fecha de vencimiento",
+    "amount": "Importe",
+    "method": "Método",
+    "status": "Estado",
+    "actions": "Acciones",
+    "document": "Documento",
+    "documents": "Documentos",
+    "attachmentName": "Nombre del adjunto",
+    "publicToInvestors": "Visible públicamente para inversores",
+    "new": "nuevo"
+  },
+  "processing": "Procesando...",
+  "finance": {
+    "repayRequired": "El envío está completado. Puedes reembolsar los fondos. Se deben depositar {{amount}} {{symbol}} en el fondo antes de completar el envío.",
+    "repayComplete": "El envío está completado. Los fondos requeridos se han reembolsado correctamente. Haz clic en \"Completar\" para desbloquear los fondos para que los recuperen los inversores."
+  },
+  "toasts": {
+    "docDeleted": "¡Documento del acuerdo eliminado correctamente!",
+    "docDeleteError": "¡Error al eliminar el documento!",
+    "descUpdated": "¡Descripción del documento actualizada correctamente!",
+    "descUpdateError": "Error al actualizar la descripción del documento",
+    "downloadError": "No se pudo descargar este documento. Mantén la sesión iniciada e inténtalo de nuevo.",
+    "publishError": "Error al publicar el envío",
+    "completeError": "Error al completar el envío",
+    "uploadLimit": "Límite de subida superado: sube un máximo de 10 archivos por envío.",
+    "uploadError": "Error al subir el documento {{filename}}, ¡inténtalo de nuevo!",
+    "visibilityError": "Error al hacer visible el documento, ¡inténtalo de nuevo!"
+  },
+  "agreementPreview": {
+    "sections": {
+      "product": "Producto:",
+      "payment": "Pago:",
+      "tranches": "Tramos:",
+      "routeTimeline": "Ruta y cronograma:",
+      "supplierData": "Datos del proveedor",
+      "buyerData": "Datos del comprador",
+      "yourData": "Tus datos",
+      "additionalInfo": "Información adicional:"
+    },
+    "fields": {
+      "product": "Producto:",
+      "variety": "Variedad:",
+      "quality": "Calidad:",
+      "presentation": "Presentación:",
+      "amount": "Cantidad:",
+      "price": "Precio:",
+      "investmentAmount": "Importe de inversión:",
+      "totalValue": "Valor total:",
+      "modeOfTransport": "Modo de transporte:",
+      "from": "Desde:",
+      "to": "Hasta:",
+      "date": "Fecha:",
+      "company": "Empresa:",
+      "country": "País:",
+      "taxId": "NIF / Tax ID:",
+      "participants": "Participantes:",
+      "description": "Descripción:"
+    },
+    "transport": {
+      "sea_freight": "Transporte marítimo",
+      "sea_fright": "Transporte marítimo",
+      "by_air": "Transporte aéreo"
+    },
+    "trancheSumError": "La suma debe ser 100%"
+  },
+  "modals": {
+    "agreement": "Acuerdo #{{id}}",
+    "deleteAttachment": "¿Eliminar el adjunto \"{{name}}\"?",
+    "editAttachment": "Editar adjunto",
+    "publishConfirm": "Publicar un envío lo mostrará en https://finance.trumarket.tech. Esta acción es irreversible. ¿Seguro que quieres publicar el acuerdo?",
+    "uploadedDocs": "{{milestone}}: DOCUMENTOS SUBIDOS"
+  },
+  "validation": {
+    "depositFailed": "Error al enviar el depósito. Inténtalo de nuevo.",
+    "insufficientEth": "Saldo ETH insuficiente",
+    "invalidNumber": "Introduce un número válido",
+    "insufficientWallet": "Saldo de billetera insuficiente",
+    "exceedsPayback": "Supera el importe requerido para reembolsar",
+    "minDeposit": "El depósito mínimo es {{amount}} USDC"
+  }
+}
