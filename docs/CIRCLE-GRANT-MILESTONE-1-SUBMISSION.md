@@ -2,9 +2,6 @@
 
 **Project:** TruMarket  
 **Grant milestone:** Milestone #1 — Arc Testnet Launch ($5,000)  
-**Contact:** team@trumarket.tech · https://www.trumarket.tech  
-**Live buyer/supplier app:** https://app.trumarket.tech  
-**Repos:** [trumarket](https://github.com/AgroSmart-Contracts/trumarket) · TruMarket Finance (investor app)
 
 ### Arc testnet deployment (validated)
 
