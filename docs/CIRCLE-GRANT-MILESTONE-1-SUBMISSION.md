@@ -194,49 +194,7 @@ All figures are included above in §3 and collected here for export. Source file
 
 ---
 
-## 6. Demo video script (what to say)
-
-The recorded demo follows this flow. Video: [circle-grant-demo.mov](https://drive.google.com/file/d/1NeCvWUh7oST5LnjcAdfAEHlI3r6Uqyt0/view?usp=sharing)
-
-### Scene 1 — Buyer/supplier app (45s) — *no wallets*
-
-**Show:** `app.trumarket.tech` — create or open a deal, upload a trade doc.
-
-**Say:** “TruMarket serves agricultural buyers and suppliers through a web2 workflow. They pay TruMarket by bank transfer; we settle suppliers through AgroPay. There is no crypto wallet in this app — milestones and payments are tracked in our API.”
-
-### Scene 2 — Finance: institutional funding (60s)
-
-**Show:** Finance app, `institution` mode → email login → Profile → Circle Mint deposit (wire instructions or deposit address).
-
-**Say:** “Institutional investors fund through Circle Mint — wire USD or USDC to a Circle business account without self-custody wallets. Capital is pooled for allocation to verified trade programs.”
-
-### Scene 3 — Finance: web3 pool deposit (45s)
-
-**Show:** Finance app, `web3` mode → connect wallet on **Base** → Pool → deposit USDC into Lagoon vault.
-
-**Say:** “Crypto-native investors deposit USDC directly into our shared Lagoon liquidity pool on Base. One chain, one transaction — no cross-chain step for retail investors.”
-
-### Scene 4 — Finance: ops CCTP treasury (60s) — *grant highlight*
-
-**Show:** Finance `/treasury` → connect ops wallet → **(A)** source **Base Sepolia** → destination **Arc Testnet** → bridge USDC → Arc explorer balance; then **(B)** swap route → **Arc Testnet** → **Base Sepolia** to show return flow.
-
-**Say:** “Cross-chain USDC is an internal treasury operation, not something buyers or investors click. We use Circle CCTP v2 and Bridge Kit on the Finance `/treasury` page to move ops USDC onto Arc testnet where our deal registry contracts live, and back to Base Sepolia when demos complete. Retail investors still deposit directly to the Lagoon pool on Base — they never use this screen.”
-
-### Scene 5 — On-chain deal identity (45s)
-
-**Show:** Arcscan for deployed `DealsManager` (`0x0F1a18BE854e9924158474fB6828287eAB10F6F6`) — `DealCreated` event, new `DealVault` address per mint.
-
-**Say:** “Each shipment deal registers on Arc as an ERC-721 with a USDC vault for borrower repayment and auditability. Investor capital does not flow through this vault in v2.0 — the pool on Base funds deals off-chain.”
-
-### Do **not** claim
-
-- Per-milestone on-chain fund release  
-- CCTP auto-funds every deal or vault  
-- Buyers bridge crypto in the main app  
-
----
-
-## 7. Links to attach
+## 6. Links to attach
 
 | Resource | URL |
 |----------|-----|
@@ -246,4 +204,3 @@ The recorded demo follows this flow. Video: [circle-grant-demo.mov](https://driv
 | DealVaultFactory (Arc testnet) | https://testnet.arcscan.app/address/0x5Dacdbb79A558f9395367badDc6d351053D58B08 |
 | Circle flow doc | [CIRCLE-GRANT-SMART-CONTRACT-FLOW.md](../protocol/docs/CIRCLE-GRANT-SMART-CONTRACT-FLOW.md) |
 | Arc deploy guide | [DEPLOY-ARC.md](../protocol/docs/DEPLOY-ARC.md) |
-| Changelog | [CHANGELOG.md](../CHANGELOG.md) |
