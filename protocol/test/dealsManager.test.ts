@@ -162,6 +162,9 @@ describe('DealsManager', function () {
       await dealsManager
         .connect(accounts.dealsManagerAccount)
         .reopenVault(0);
+      await dealsManager
+        .connect(accounts.dealsManagerAccount)
+        .unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = (await hre.ethers.getContractAt(

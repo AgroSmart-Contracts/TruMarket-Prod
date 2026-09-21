@@ -40,6 +40,7 @@ async function deployFixture(): Promise<Fixture> {
     const amount = ethers.parseEther("100");
   await dealsManager.connect(borrowerAccount).mint(amount, borrowerAccount.address);
   await dealsManager.connect(borrowerAccount).reopenVault(0);
+      await dealsManager.connect(borrowerAccount).unblockVaultDeposits(0);
   const vaultAddress = await dealsManager.vault(0);
   const vault = await ethers.getContractAt("DealVault", vaultAddress) as DealVault;
 
@@ -75,6 +76,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -107,6 +109,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -151,7 +154,28 @@ describe('DealVault', function () {
   });
 
   describe('Max Deposit and Mint', () => {
-    it('should return correct max deposit amount', async () => {
+    it('should return 0 max deposit while paused or deposit-blocked', async () => {
+      const { dealsManager } = await deploy(hre, accounts);
+      const vaultFunds = ethers.parseEther('100');
+
+      await dealsManager
+        .connect(accounts.dealsManagerAccount)
+        .mint(vaultFunds, accounts.financialAccount.address);
+
+      const vaultAddress = await dealsManager.vault(0);
+      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
+
+      // Default v2 vault: paused + deposit-blocked
+      expect(await dealVault.maxDeposit(accounts.investorAccount.address)).to.equal(0n);
+      expect(await dealVault.maxMint(accounts.investorAccount.address)).to.equal(0n);
+
+      // reopenVault unpauses but leaves deposits blocked
+      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      expect(await dealVault.maxDeposit(accounts.investorAccount.address)).to.equal(0n);
+      expect(await dealVault.maxMint(accounts.investorAccount.address)).to.equal(0n);
+    });
+
+    it('should return correct max deposit amount after deposits are unblocked', async () => {
       const { dealsManager, erc20 } = await deploy(hre, accounts);
       const vaultFunds = ethers.parseEther('100');
 
@@ -160,6 +184,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -168,7 +193,7 @@ describe('DealVault', function () {
       expect(maxDeposit).to.equal(ethers.parseEther('100'));
     });
 
-    it('should return correct max mint amount', async () => {
+    it('should return correct max mint amount after deposits are unblocked', async () => {
       const { dealsManager, erc20 } = await deploy(hre, accounts);
       const vaultFunds = ethers.parseEther('100');
 
@@ -177,6 +202,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -203,6 +229,7 @@ describe('DealVault', function () {
       expect(await dealVault.paused()).to.be.true;
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       await erc20
         .connect(accounts.deployerAccount)
@@ -305,6 +332,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -339,6 +367,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -449,6 +478,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -478,6 +508,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -532,6 +563,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
@@ -590,6 +622,7 @@ describe('DealVault', function () {
         .mint(vaultFunds, accounts.financialAccount.address);
 
       await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
       const vaultAddress = await dealsManager.vault(0);
       const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;

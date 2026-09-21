@@ -53,7 +53,8 @@ These contracts remain on-chain for **deal identity (ERC-721), borrower repaymen
 - **Owner-only** `mint(maxDeposit, borrower)` — creates ERC-721 token, deploys a `DealVault` via `DealVaultFactory`, and pauses/blocks direct vault deposits.
 - **`donateToDeal`** — borrower repays USDC into the deal vault (shipment finance UI).
 - **`setDealCompleted`** — marks deal complete; calls `vault.complete()` when repayment exceeds `maxDeposit`.
-- **`reopenVault`** — admin-only legacy helper to re-enable direct vault deposits (v1.x tests).
+- **`reopenVault`** — admin-only; unpauses for legacy redemptions. Deposits stay blocked.
+- **`blockVaultDeposits` / `unblockVaultDeposits`** — admin-only explicit deposit gate (do not unblock after disbursing assets while shares remain).
 - **`transferFromVault`** — admin emergency transfer from vault.
 
 ### DealVault (`Deal Shares` / `DLS`)
