@@ -40,9 +40,15 @@ These contracts remain on-chain for **deal identity (ERC-721), borrower repaymen
 | **DealVault** | Per-deal USDC bookkeeping; borrower repayment; admin transfer | **Active** for repay flows; **not** the investor deposit rail |
 | **ERC20Mock** | Local/test USDC stand-in | **Test only** |
 
-### Planned (Circle grant / Arc)
+### Deployed (Circle grant / Arc)
 
-- Deploy `DealsManager` on **Arc testnet** (EVM-compatible; add Arc RPC to `hardhat.config.ts`).
+| Network | DealVaultFactory | DealsManager |
+|---------|------------------|--------------|
+| **Arc mainnet** (`5042`) | `0x5Dacdbb79A558f9395367badDc6d351053D58B08` | `0x0F1a18BE854e9924158474fB6828287eAB10F6F6` |
+| **Arc testnet** (`5042002`) | `0x4Ff7e80bE6D7776d626Ea8dD7FB896041732B0C4` | `0xfA3D35C236CFe644786e9B360706eB97CF2836A7` |
+
+JSON: [`scripts/addresses/arc-mainnet.json`](scripts/addresses/arc-mainnet.json), [`scripts/addresses/arc-testnet.json`](scripts/addresses/arc-testnet.json).
+
 - **Circle CCTP / Bridge Kit** for cross-chain USDC into the Lagoon pool (investor app, not these contracts).
 - Full removal of per-deal vault investor paths once Lagoon pool is the sole capital source.
 

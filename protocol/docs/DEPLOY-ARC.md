@@ -86,6 +86,17 @@ This deploys **in order**: `DealVaultFactory` → `DealsManager(deployer, USDC, 
 
 Output is written to `protocol/scripts/addresses/arc-mainnet.json`.
 
+### Deployed addresses (Arc mainnet — 2026-09-21)
+
+| Contract | Address |
+|----------|---------|
+| **DealVaultFactory** | `0x5Dacdbb79A558f9395367badDc6d351053D58B08` |
+| **DealsManager** | `0x0F1a18BE854e9924158474fB6828287eAB10F6F6` |
+| **USDC** | `0x3600000000000000000000000000000000000000` |
+| **Owner / deployer** | `0x916d9dF94a82B63aa95761A9C017fAD46492FEC8` |
+
+Explorer: https://explorer.arc.io/address/0x0F1a18BE854e9924158474fB6828287eAB10F6F6
+
 ### Deploy on Arc Testnet (optional / regression)
 
 ```bash
@@ -94,15 +105,25 @@ npm run deploy:arc
 
 Output: `protocol/scripts/addresses/arc-testnet.json`.
 
+### Deployed addresses (Arc testnet — post–Octane fixes, 2026-09-21)
+
+| Contract | Address |
+|----------|---------|
+| **DealVaultFactory** | `0x4Ff7e80bE6D7776d626Ea8dD7FB896041732B0C4` |
+| **DealsManager** | `0xfA3D35C236CFe644786e9B360706eB97CF2836A7` |
+
+Explorer: https://explorer.testnet.arc.io/address/0xfA3D35C236CFe644786e9B360706eB97CF2836A7
+
 ---
 
 ## Step 3 — Configure the API (mainnet)
 
 ```bash
-BLOCKCHAIN_RPC_URL=https://rpc.mainnet.arc.io
-BLOCKCHAIN_CHAIN_ID=5042
+DEAL_CHAIN_RPC_URL=https://rpc.mainnet.arc.io
+DEAL_CHAIN_ID=5042
+DEAL_CHAIN_EXPLORER=https://explorer.arc.io
 BLOCKCHAIN_PRIVATE_KEY=0xSameOwnerKeyAsDeployer
-DEALS_MANAGER_CONTRACT_ADDRESS=0x...from arc-mainnet.json
+DEALS_MANAGER_CONTRACT_ADDRESS=0x0F1a18BE854e9924158474fB6828287eAB10F6F6
 INVESTMENT_TOKEN_CONTRACT_ADDRESS=0x3600000000000000000000000000000000000000
 INVESTMENT_TOKEN_DECIMALS=6
 INVESTMENT_TOKEN_SYMBOL=USDC
@@ -111,19 +132,24 @@ AUTOMATIC_DEALS_ACCEPTANCE=true
 
 The API wallet must be the **owner** of `DealsManager` (the deployer address).
 
+See also `api/.env.example`.
+
 ---
 
 ## Step 4 — Configure the web app (mainnet)
 
 ```bash
-NEXT_PUBLIC_BLOCKCHAIN_EXPLORER=https://explorer.arc.io
-NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=0x...DealsManager
-NEXT_PUBLIC_INVESTMENT_TOKEN_CONTRACT_ADDRESS=0x3600000000000000000000000000000000000000
-NEXT_PUBLIC_INVESTMENT_TOKEN_DECIMALS=6
-NEXT_PUBLIC_INVESTMENT_TOKEN_SYMBOL=USDC
+NEXT_PUBLIC_DEAL_CHAIN_ID=5042
+NEXT_PUBLIC_DEAL_CHAIN_RPC_URL=https://rpc.mainnet.arc.io
+NEXT_PUBLIC_DEAL_CHAIN_NAME=Arc
+NEXT_PUBLIC_DEAL_CHAIN_EXPLORER=https://explorer.arc.io
+NEXT_PUBLIC_DEAL_NFT_CONTRACT_ADDRESS=0x0F1a18BE854e9924158474fB6828287eAB10F6F6
+NEXT_PUBLIC_DEAL_INVESTMENT_TOKEN_CONTRACT_ADDRESS=0x3600000000000000000000000000000000000000
+NEXT_PUBLIC_DEAL_INVESTMENT_TOKEN_DECIMALS=6
+NEXT_PUBLIC_DEAL_INVESTMENT_TOKEN_SYMBOL=USDC
 ```
 
-Rebuild/redeploy the web bundle after changing `NEXT_PUBLIC_*` vars.
+Rebuild/redeploy the web bundle after changing `NEXT_PUBLIC_*` vars. See `web/.env.example`.
 
 ---
 
