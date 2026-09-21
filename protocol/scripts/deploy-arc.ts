@@ -3,23 +3,62 @@ import * as path from 'path';
 
 import hre from 'hardhat';
 
-import { ARC_TESTNET } from './cctp/constants';
+import { ARC_MAINNET, ARC_TESTNET } from './cctp/constants';
+
+type ArcNetworkConfig = typeof ARC_MAINNET | typeof ARC_TESTNET;
 
 /**
- * Deploy DealsManager on Arc Testnet using native Arc USDC as underlying.
+ * Deploy DealVaultFactory + DealsManager on Arc (testnet or mainnet).
  * DealVault contracts are deployed automatically when the API calls mint().
  *
  * Usage:
  *   PRIVATE_KEY=0x... npx hardhat run scripts/deploy-arc.ts --network arcTestnet
+ *   PRIVATE_KEY=0x... npx hardhat run scripts/deploy-arc.ts --network arcMainnet
  */
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
-  const usdcAddress =
-    process.env.ARC_USDC_ADDRESS || ARC_TESTNET.usdcAddress;
+  const networkName = hre.network.name;
+  const arcConfig: ArcNetworkConfig =
+    networkName === 'arcMainnet' ? ARC_MAINNET : ARC_TESTNET;
 
+  if (networkName !== 'arcMainnet' && networkName !== 'arcTestnet') {
+    throw new Error(
+      `Unsupported network "${networkName}". Use --network arcTestnet or arcMainnet.`,
+    );
+  }
+
+  const [deployer] = await hre.ethers.getSigners();
+  if (!deployer) {
+    throw new Error(
+      'No deployer account. Set PRIVATE_KEY or BLOCKCHAIN_PRIVATE_KEY in protocol/.env',
+    );
+  }
+
+  const usdcAddress = process.env.ARC_USDC_ADDRESS || arcConfig.usdcAddress;
+  const chainId = Number((await hre.ethers.provider.getNetwork()).chainId);
+
+  if (chainId !== arcConfig.chainId) {
+    throw new Error(
+      `Chain ID mismatch: expected ${arcConfig.chainId}, got ${chainId}`,
+    );
+  }
+
+  const balance = await hre.ethers.provider.getBalance(deployer.address);
+  console.log('Network:', networkName, 'chainId:', chainId);
   console.log('Deployer:', deployer.address);
   console.log('Underlying USDC:', usdcAddress);
-  console.log('Network:', hre.network.name, 'chainId:', (await hre.ethers.provider.getNetwork()).chainId);
+  console.log('Native balance (gas):', hre.ethers.formatEther(balance), 'USDC');
+
+  if (balance === 0n) {
+    throw new Error(
+      `Deployer ${deployer.address} has zero native USDC for gas on ${networkName}. Fund the wallet before deploying.`,
+    );
+  }
+
+  if (networkName === 'arcMainnet') {
+    console.log(
+      '\n⚠️  MAINNET DEPLOY — real USDC gas. Confirm addresses after broadcast.\n',
+    );
+  }
 
   const vaultFactory = await hre.ethers.deployContract('DealVaultFactory');
   await vaultFactory.waitForDeployment();
@@ -34,33 +73,34 @@ async function main() {
   const dealsManagerAddress = await dealsManager.getAddress();
   const vaultFactoryAddress = await vaultFactory.getAddress();
 
+  const addressFile =
+    networkName === 'arcMainnet' ? 'arc-mainnet.json' : 'arc-testnet.json';
+
   const deployed = {
-    network: 'arcTestnet',
-    chainId: ARC_TESTNET.chainId,
+    network: networkName,
+    chainId: arcConfig.chainId,
     deployer: deployer.address,
     dealVaultFactory: vaultFactoryAddress,
     dealsManager: dealsManagerAddress,
     usdc: usdcAddress,
     deployedAt: new Date().toISOString(),
-    explorer: `${ARC_TESTNET.explorerUrl}/address/${dealsManagerAddress}`,
+    explorer: `${arcConfig.explorerUrl}/address/${dealsManagerAddress}`,
   };
 
-  const outPath = path.join(__dirname, './addresses/arc-testnet.json');
+  const outPath = path.join(__dirname, './addresses', addressFile);
   fs.writeFileSync(outPath, JSON.stringify(deployed, null, 2));
 
   console.log('\nDeployed DealVaultFactory:', vaultFactoryAddress);
   console.log('Deployed DealsManager:', dealsManagerAddress);
   console.log('Explorer:', deployed.explorer);
   console.log('Saved:', outPath);
-  console.log('\nNext steps:');
-  console.log('  1. Fund deployer with Arc testnet USDC (gas) from https://faucet.circle.com');
-  console.log('  2. Set API env: DEALS_MANAGER_CONTRACT_ADDRESS=' + dealsManagerAddress);
-  console.log('     (DealVaultFactory for reference only: ' + vaultFactoryAddress + ')');
-  console.log('  3. Set API env: INVESTMENT_TOKEN_CONTRACT_ADDRESS=' + usdcAddress);
-  console.log('  4. Set API env: DEAL_CHAIN_ID=' + ARC_TESTNET.chainId);
-  console.log('  5. Set API env: DEAL_CHAIN_RPC_URL=' + ARC_TESTNET.rpcUrl);
-  console.log('  6. Set web env: NEXT_PUBLIC_DEAL_NFT_CONTRACT_ADDRESS=' + dealsManagerAddress);
-  console.log('  7. Set AUTOMATIC_DEALS_ACCEPTANCE=true to mint DealVault on deal create');
+  console.log('\nNext steps (API / web):');
+  console.log('  DEALS_MANAGER_CONTRACT_ADDRESS=' + dealsManagerAddress);
+  console.log('  INVESTMENT_TOKEN_CONTRACT_ADDRESS=' + usdcAddress);
+  console.log('  BLOCKCHAIN_CHAIN_ID=' + arcConfig.chainId);
+  console.log('  BLOCKCHAIN_RPC_URL=' + arcConfig.rpcUrl);
+  console.log('  NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=' + dealsManagerAddress);
+  console.log('  AUTOMATIC_DEALS_ACCEPTANCE=true');
 }
 
 main()

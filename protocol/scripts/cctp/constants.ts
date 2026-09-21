@@ -2,13 +2,43 @@
 const arcHex = (parts: readonly string[]) =>
   (`0x${parts.join('')}` as const);
 
-/** Arc Testnet — Circle CCTP domain 26. See https://docs.arc.network */
+/** Shared Arc USDC ERC-20 interface (same address on testnet + mainnet). */
+export const ARC_USDC_ADDRESS = arcHex([
+  '3600000000000000000000000000000000000000',
+]);
+
+/** Arc Mainnet — Circle CCTP domain 26. See https://docs.arc.io */
+export const ARC_MAINNET = {
+  chainId: 5042,
+  rpcUrl: 'https://rpc.mainnet.arc.io',
+  explorerUrl: 'https://explorer.arc.io',
+  usdcAddress: ARC_USDC_ADDRESS,
+  cctpDomain: 26,
+  /** Circle CCTP Token Messenger V2 (Arc mainnet) */
+  tokenMessengerV2: arcHex([
+    '28b5a0e9',
+    'C621a5Ba',
+    'daA53621',
+    '9b3a228C',
+    '8168cf5d',
+  ]),
+  /** Circle CCTP Message Transmitter V2 (Arc mainnet) */
+  messageTransmitterV2: arcHex([
+    '81D40F21',
+    'F12A8F0E',
+    '3252Bccb',
+    '954D722d',
+    '4c464B64',
+  ]),
+} as const;
+
+/** Arc Testnet — Circle CCTP domain 26. See https://docs.arc.io */
 export const ARC_TESTNET = {
   chainId: 5042002,
-  rpcUrl: 'https://rpc.testnet.arc.network',
-  explorerUrl: 'https://testnet.arcscan.app',
+  rpcUrl: 'https://rpc.testnet.arc.io',
+  explorerUrl: 'https://explorer.testnet.arc.io',
   /** Native USDC ERC-20 interface on Arc */
-  usdcAddress: arcHex(['3600000000000000000000000000000000000000']),
+  usdcAddress: ARC_USDC_ADDRESS,
   cctpDomain: 26,
   /** Circle CCTP Token Messenger V2 (Arc testnet) */
   tokenMessengerV2: arcHex([

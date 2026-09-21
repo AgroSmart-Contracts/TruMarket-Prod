@@ -62,8 +62,13 @@ const config: HardhatUserConfig = {
       accounts,
     },
     arcTestnet: {
-      url: process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network',
+      url: process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.io',
       chainId: 5042002,
+      accounts,
+    },
+    arcMainnet: {
+      url: process.env.ARC_MAINNET_RPC_URL || 'https://rpc.mainnet.arc.io',
+      chainId: 5042,
       accounts,
     },
   },
