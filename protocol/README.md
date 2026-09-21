@@ -82,13 +82,15 @@ npm run local:deploy        # deploy DealsManager + mock USDC
 | `hardhat` | Local dev; optional Base fork |
 | `base` | Production deployment |
 | `sepolia` / `amoy` | Testnets |
-| `arcTestnet` | **Circle grant** — deploy DealsManager, CCTP destination |
+| `arcTestnet` | **Circle grant M1** — deploy DealsManager, CCTP destination |
+| `arcMainnet` | **Circle grant M2** — Arc mainnet production deploy |
 
 Deploy and bridge commands:
 
 ```bash
-npm run deploy:arc          # DealsManager on Arc testnet
-npm run bridge:arc -- Base_Sepolia 1.00   # CCTP USDC → Arc
+npm run deploy:arc                 # DealsManager on Arc testnet
+npm run deploy:arc:mainnet         # DealsManager on Arc mainnet (funded PRIVATE_KEY)
+npm run bridge:arc -- Base_Sepolia 1.00   # CCTP USDC → Arc testnet
 ```
 
 See [`docs/DEPLOY-ARC.md`](docs/DEPLOY-ARC.md) and [`docs/CIRCLE-GRANT-SMART-CONTRACT-FLOW.md`](docs/CIRCLE-GRANT-SMART-CONTRACT-FLOW.md).
