@@ -13,3 +13,6 @@ node_modules
 /coverage
 /coverage.json
 
+
+# Local Hardhat HOME override (sandbox / CI)
+.hardhat-home/

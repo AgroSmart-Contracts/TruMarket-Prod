@@ -3,12 +3,14 @@
 **Project:** TruMarket  
 **Grant milestone:** Milestone #1 — Arc Testnet Launch ($5,000)  
 
-### Arc testnet deployment (validated)
+### Arc testnet deployment (validated for M1)
 
 | Contract | Address | Explorer |
 |----------|---------|----------|
 | **DealVaultFactory** | `0x5Dacdbb79A558f9395367badDc6d351053D58B08` | [Arcscan](https://testnet.arcscan.app/address/0x5Dacdbb79A558f9395367badDc6d351053D58B08) |
 | **DealsManager** | `0x0F1a18BE854e9924158474fB6828287eAB10F6F6` | [Arcscan](https://testnet.arcscan.app/address/0x0F1a18BE854e9924158474fB6828287eAB10F6F6) |
+
+> **Note (2026-09-21):** After Octane ERC-4626 hardening, contracts were **redeployed on Arc testnet** at `DealVaultFactory` `0x4Ff7…B0C4` / `DealsManager` `0xfA3D…36A7`. The same bytecode was then deployed on **Arc mainnet** (`5042`); CREATE address coincidence means mainnet DealsManager is also `0x0F1a…F6F6` — verify chain ID `5042` vs `5042002` when inspecting explorers. See `protocol/scripts/addresses/`.
 
 **Demo video:** [circle-grant-demo.mov (Google Drive)](https://drive.google.com/file/d/1NeCvWUh7oST5LnjcAdfAEHlI3r6Uqyt0/view?usp=sharing)
 

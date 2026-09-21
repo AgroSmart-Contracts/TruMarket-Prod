@@ -10,6 +10,7 @@
     "local:faucet": "npx hardhat run scripts/faucet.ts --network localhost",
     "local:setup": "npm run local:deploy && npm run local:mint-underlying && npm run local:faucet",
     "deploy:arc": "npx hardhat run scripts/deploy-arc.ts --network arcTestnet",
+    "deploy:arc:mainnet": "npx hardhat run scripts/deploy-arc.ts --network arcMainnet",
     "bridge:arc": "npx ts-node scripts/cctp/bridge-to-arc.ts",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test --typecheck --show-stack-traces",

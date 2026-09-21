@@ -44,6 +44,9 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
 
     /// @notice Minimum deposit amount to prevent inflation attacks
     uint256 private _minDeposit;
+    /// @notice Principal deposited via deposit/mint (excludes donations / direct transfers)
+    /// @dev Used for capacity checks so dust transfers cannot grief remaining headroom.
+    uint256 private _principalOutstanding;
     /// @notice Virtual offset for ERC4626 inflation attack protection
     uint8 private constant _DECIMALS_OFFSET = 6;
 
@@ -105,21 +108,39 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
     function maxDeposit(
         address
     ) public view override returns (uint256) {
-        uint256 currentAssets = totalAssets();
-        return _maxDeposit > currentAssets ? _maxDeposit - currentAssets : 0;
+        if (paused() || _depositBlocked) return 0;
+        return _maxDeposit > _principalOutstanding
+            ? _maxDeposit - _principalOutstanding
+            : 0;
     }
 
     /**
      * @notice Returns the maximum amount of shares that can be minted
      * @return Maximum amount of shares that can be minted
      */
-    function maxMint(address ) public view override returns (uint256) {
-        uint256 currentAssets = totalAssets();
-        uint256 maxAssets = _maxDeposit > currentAssets
-            ? _maxDeposit - currentAssets
+    function maxMint(address) public view override returns (uint256) {
+        if (paused() || _depositBlocked) return 0;
+        uint256 maxAssets = _maxDeposit > _principalOutstanding
+            ? _maxDeposit - _principalOutstanding
             : 0;
         if (maxAssets == 0) return 0;
         return convertToShares(maxAssets);
+    }
+
+    /**
+     * @notice Returns the maximum assets `owner` can withdraw
+     * @dev Returns 0 while paused so ERC-4626 clients do not advertise a non-zero capacity.
+     */
+    function maxWithdraw(address owner) public view override returns (uint256) {
+        return paused() ? 0 : super.maxWithdraw(owner);
+    }
+
+    /**
+     * @notice Returns the maximum shares `owner` can redeem
+     * @dev Returns 0 while paused so ERC-4626 clients do not advertise a non-zero capacity.
+     */
+    function maxRedeem(address owner) public view override returns (uint256) {
+        return paused() ? 0 : super.maxRedeem(owner);
     }
 
     /**
@@ -154,9 +175,8 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         require(receiver != address(0), "Invalid receiver address");
         require(assets >= _minDeposit, "Deposit amount below minimum");
 
-        // Enforce max deposit limit
-        uint256 currentAssets = totalAssets();
-        require(currentAssets + assets <= _maxDeposit, "Exceeds max deposit");
+        // Enforce max deposit limit against principal (not raw balance / donations)
+        require(_principalOutstanding + assets <= _maxDeposit, "Exceeds max deposit");
 
         // Calculate shares using ERC4626 standard conversion (includes virtual offset)
         uint256 shares = convertToShares(assets);
@@ -165,6 +185,7 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         // Transfer tokens and mint shares
         IERC20(asset()).transferFrom(msg.sender, address(this), assets);
         _mint(receiver, shares);
+        _principalOutstanding += assets;
 
         emit Deposit(msg.sender, receiver, assets, shares);
 
@@ -187,17 +208,17 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         require(receiver != address(0), "Invalid receiver address");
         require(shares > 0, "Share amount must be positive");
 
-        // Calculate assets using ERC4626 standard conversion (includes virtual offset)
-        uint256 assets = convertToAssets(shares);
+        // Ceiling-round assets so mint does not under-charge the depositor
+        uint256 assets = previewMint(shares);
         require(assets >= _minDeposit, "Equivalent asset amount below minimum");
 
-        // Enforce max deposit limit
-        uint256 currentAssets = totalAssets();
-        require(currentAssets + assets <= _maxDeposit, "Exceeds max deposit");
+        // Enforce max deposit limit against principal (not raw balance / donations)
+        require(_principalOutstanding + assets <= _maxDeposit, "Exceeds max deposit");
 
         // Transfer tokens and mint shares
         IERC20(asset()).transferFrom(msg.sender, address(this), assets);
         _mint(receiver, shares);
+        _principalOutstanding += assets;
 
         emit Deposit(msg.sender, receiver, assets, shares);
 
@@ -233,6 +254,7 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         // Burn shares and transfer tokens
         _burn(owner, shares);
         IERC20(asset()).transfer(receiver, assets);
+        _decreasePrincipalOutstanding(assets);
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
 
@@ -257,8 +279,8 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         require(owner != address(0), "Invalid owner address");
         require(assets > 0, "Assets must be positive");
 
-        // Calculate shares using ERC4626 standard conversion (includes virtual offset)
-        uint256 shares = convertToShares(assets);
+        // Ceiling-round shares burned so withdraw cannot under-burn vs ERC-4626
+        uint256 shares = previewWithdraw(assets);
         require(shares > 0, "Insufficient shares for withdrawal");
 
         if (msg.sender != owner) {
@@ -268,10 +290,17 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         // Burn shares and transfer tokens
         _burn(owner, shares);
         IERC20(asset()).transfer(receiver, assets);
+        _decreasePrincipalOutstanding(assets);
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
 
         return shares;
+    }
+
+    function _decreasePrincipalOutstanding(uint256 assets) private {
+        _principalOutstanding = assets >= _principalOutstanding
+            ? 0
+            : _principalOutstanding - assets;
     }
 
     /**

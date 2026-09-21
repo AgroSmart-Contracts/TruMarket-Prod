@@ -1,4 +1,4 @@
-export const DealsManagerAbi = [
+const DealsManagerAbi = [
   {
     "inputs": [
       {
@@ -9,6 +9,11 @@ export const DealsManagerAbi = [
       {
         "internalType": "address",
         "name": "underlying_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "vaultFactory_",
         "type": "address"
       }
     ],
@@ -413,6 +418,19 @@ export const DealsManagerAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId_",
+        "type": "uint256"
+      }
+    ],
+    "name": "blockVaultDeposits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -847,6 +865,19 @@ export const DealsManagerAbi = [
         "type": "uint256"
       }
     ],
+    "name": "unblockVaultDeposits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId_",
+        "type": "uint256"
+      }
+    ],
     "name": "vault",
     "outputs": [
       {
@@ -859,3 +890,5 @@ export const DealsManagerAbi = [
     "type": "function"
   }
 ] as const;
+
+export default DealsManagerAbi;

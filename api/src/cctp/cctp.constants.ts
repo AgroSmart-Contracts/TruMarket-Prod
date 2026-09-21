@@ -1,9 +1,16 @@
 /** Shared CCTP constants (mirrors protocol/scripts/cctp/constants.ts) */
 
+export const ARC_MAINNET = {
+  chainId: 5042,
+  rpcUrl: 'https://rpc.mainnet.arc.io',
+  explorerUrl: 'https://explorer.arc.io',
+  usdcAddress: '0x3600000000000000000000000000000000000000',
+} as const;
+
 export const ARC_TESTNET = {
   chainId: 5042002,
-  rpcUrl: 'https://rpc.testnet.arc.network',
-  explorerUrl: 'https://testnet.arcscan.app',
+  rpcUrl: 'https://rpc.testnet.arc.io',
+  explorerUrl: 'https://explorer.testnet.arc.io',
   usdcAddress: '0x3600000000000000000000000000000000000000',
 } as const;
 

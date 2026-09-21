@@ -194,13 +194,31 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
     }
 
     /**
-     * @notice Re-enables direct vault deposits (legacy v1.x / test helpers only).
+     * @notice Unpauses the vault for legacy redemptions/withdrawals; deposits remain blocked.
+     * @dev Does not call `unblockDeposits`. Re-opening deposits after disbursement enables
+     *      ERC-4626 virtual-offset share inflation when assets ≈ 0 and supply is large.
      */
     function reopenVault(uint256 tokenId_) external onlyOwner {
         require(tokenId_ < _nextTokenId, "Deal not found");
-        IDealVault dealVault = IDealVault(_deals[tokenId_].vault);
-        dealVault.unpause();
-        dealVault.unblockDeposits();
+        IDealVault(_deals[tokenId_].vault).unpause();
+    }
+
+    /**
+     * @notice Blocks deposits on a deal vault (owner-only; vault owner is this contract).
+     */
+    function blockVaultDeposits(uint256 tokenId_) external onlyOwner {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        IDealVault(_deals[tokenId_].vault).blockDeposits();
+    }
+
+    /**
+     * @notice Explicitly unblocks deposits for intentional legacy/test use only.
+     * @dev Prefer leaving deposits blocked. Enabling deposits after `transferFromVault`
+     *      creates a low-asset/high-supply pricing risk under ERC-4626 virtual offsets.
+     */
+    function unblockVaultDeposits(uint256 tokenId_) external onlyOwner {
+        require(tokenId_ < _nextTokenId, "Deal not found");
+        IDealVault(_deals[tokenId_].vault).unblockDeposits();
     }
 
     function transferFromVault(

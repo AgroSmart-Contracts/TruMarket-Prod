@@ -78,10 +78,10 @@ sequenceDiagram
 | Variable | Purpose |
 |----------|---------|
 | `AUTOMATIC_DEALS_ACCEPTANCE=true` | Mint NFT + deploy `DealVault` on deal create (and on legacy confirm). Set in `docker-compose.yaml` for local/dev. |
-| `DEALS_MANAGER_CONTRACT_ADDRESS` | Deployed `DealsManager` on target chain (Base today; Arc testnet for grant M1). |
-| `INVESTMENT_TOKEN_CONTRACT_ADDRESS` | USDC on that chain (6 decimals on Base/Arc). |
-| `BLOCKCHAIN_RPC_URL` / `BLOCKCHAIN_PRIVATE_KEY` | API wallet (must be `DealsManager` owner for `mint`). |
-| `ARC_*` env vars | Arc testnet RPC, USDC address — see [DEPLOY-ARC.md](./DEPLOY-ARC.md) |
+| `DEALS_MANAGER_CONTRACT_ADDRESS` | Deployed `DealsManager` — Arc mainnet `0x0F1a18BE854e9924158474fB6828287eAB10F6F6` (M2); testnet `0xfA3D35C236CFe644786e9B360706eB97CF2836A7`. |
+| `INVESTMENT_TOKEN_CONTRACT_ADDRESS` | Arc USDC `0x3600000000000000000000000000000000000000` (6 decimals). |
+| `DEAL_CHAIN_*` / `BLOCKCHAIN_PRIVATE_KEY` | Deal-chain RPC + API wallet (must be `DealsManager` owner for `mint`). |
+| `ARC_*` env vars | Arc RPC / explorer / USDC — see [DEPLOY-ARC.md](./DEPLOY-ARC.md) |
 
 Admin fallback: `POST /admin/deals/:dealId/nft/mint` performs the same mint if automatic path was off.
 
@@ -126,8 +126,8 @@ Grant structure (from Circle program):
 | **M1** | Maintain / enhance **Circle CCTP** integrations | Cross-chain USDC into Lagoon pool (investor app / `trumarket-finance-with-safe`); CCTP moves USDC between chains **into pool capital**, while **deal registry stays on Arc** (or home chain). Composes: CCTP (liquidity) + DealsManager (deal truth). |
 | **M1 (optional)** | **Circle Bridge Kit** for simplified cross-chain USDC | Optional UX layer on top of CCTP for investor deposits; does not replace on-chain deal contracts. |
 | **M1** | Progress report | This doc + demo video: create deal → mint tx → vault → milestone event logs. |
-| **M2 — $5,000** | **Arc mainnet** within 30 days of Arc mainnet launch | Redeploy or upgrade `DealsManager` on Arc mainnet; point production API/web ABIs and addresses; regression test mint/proceed/donate/complete. |
-| **M2** | Validation artifacts | Explorer links, testnet/mainnet addresses, Hardhat test suite (`protocol/test/`), live app demo. |
+| **M2 — $5,000** | **Arc mainnet** within 30 days of Arc mainnet launch | ✅ Deployed `DealVaultFactory` + `DealsManager` on Arc mainnet (`5042`); API/web `.env.example` + ABIs pointed at mainnet addresses. |
+| **M2** | Validation artifacts | Explorer: https://explorer.arc.io/address/0x0F1a18BE854e9924158474fB6828287eAB10F6F6 — addresses in `scripts/addresses/arc-mainnet.json`, Hardhat suite (`protocol/test/`). |
 
 ### Why the split architecture makes sense for Circle
 
@@ -145,7 +145,7 @@ Grant structure (from Circle program):
 |------|----------------|
 | `protocol/contracts/DealsManager.sol` | Mint, proceed, donate, complete |
 | `protocol/contracts/DealVault.sol` | Per-deal USDC vault |
-| `protocol/scripts/deploy-arc.ts` | Deploy DealsManager on Arc testnet |
+| `protocol/scripts/deploy-arc.ts` | Deploy DealVaultFactory + DealsManager on Arc testnet or mainnet |
 | `protocol/scripts/cctp/bridge-to-arc.ts` | CLI CCTP bridge to Arc |
 | `api/src/cctp/` | `GET /cctp/config` for web |
 | `api/src/blockchain/blockchain.service.ts` | viem client: `mintNFT`, `proceed`, `setDealAsCompleted`, `vault` |

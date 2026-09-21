@@ -40,9 +40,15 @@ These contracts remain on-chain for **deal identity (ERC-721), borrower repaymen
 | **DealVault** | Per-deal USDC bookkeeping; borrower repayment; admin transfer | **Active** for repay flows; **not** the investor deposit rail |
 | **ERC20Mock** | Local/test USDC stand-in | **Test only** |
 
-### Planned (Circle grant / Arc)
+### Deployed (Circle grant / Arc)
 
-- Deploy `DealsManager` on **Arc testnet** (EVM-compatible; add Arc RPC to `hardhat.config.ts`).
+| Network | DealVaultFactory | DealsManager |
+|---------|------------------|--------------|
+| **Arc mainnet** (`5042`) | `0x5Dacdbb79A558f9395367badDc6d351053D58B08` | `0x0F1a18BE854e9924158474fB6828287eAB10F6F6` |
+| **Arc testnet** (`5042002`) | `0x4Ff7e80bE6D7776d626Ea8dD7FB896041732B0C4` | `0xfA3D35C236CFe644786e9B360706eB97CF2836A7` |
+
+JSON: [`scripts/addresses/arc-mainnet.json`](scripts/addresses/arc-mainnet.json), [`scripts/addresses/arc-testnet.json`](scripts/addresses/arc-testnet.json).
+
 - **Circle CCTP / Bridge Kit** for cross-chain USDC into the Lagoon pool (investor app, not these contracts).
 - Full removal of per-deal vault investor paths once Lagoon pool is the sole capital source.
 
@@ -53,7 +59,8 @@ These contracts remain on-chain for **deal identity (ERC-721), borrower repaymen
 - **Owner-only** `mint(maxDeposit, borrower)` — creates ERC-721 token, deploys a `DealVault` via `DealVaultFactory`, and pauses/blocks direct vault deposits.
 - **`donateToDeal`** — borrower repays USDC into the deal vault (shipment finance UI).
 - **`setDealCompleted`** — marks deal complete; calls `vault.complete()` when repayment exceeds `maxDeposit`.
-- **`reopenVault`** — admin-only legacy helper to re-enable direct vault deposits (v1.x tests).
+- **`reopenVault`** — admin-only; unpauses for legacy redemptions. Deposits stay blocked.
+- **`blockVaultDeposits` / `unblockVaultDeposits`** — admin-only explicit deposit gate (do not unblock after disbursing assets while shares remain).
 - **`transferFromVault`** — admin emergency transfer from vault.
 
 ### DealVault (`Deal Shares` / `DLS`)
@@ -81,13 +88,15 @@ npm run local:deploy        # deploy DealsManager + mock USDC
 | `hardhat` | Local dev; optional Base fork |
 | `base` | Production deployment |
 | `sepolia` / `amoy` | Testnets |
-| `arcTestnet` | **Circle grant** — deploy DealsManager, CCTP destination |
+| `arcTestnet` | **Circle grant M1** — deploy DealsManager, CCTP destination |
+| `arcMainnet` | **Circle grant M2** — Arc mainnet production deploy |
 
 Deploy and bridge commands:
 
 ```bash
-npm run deploy:arc          # DealsManager on Arc testnet
-npm run bridge:arc -- Base_Sepolia 1.00   # CCTP USDC → Arc
+npm run deploy:arc                 # DealsManager on Arc testnet
+npm run deploy:arc:mainnet         # DealsManager on Arc mainnet (funded PRIVATE_KEY)
+npm run bridge:arc -- Base_Sepolia 1.00   # CCTP USDC → Arc testnet
 ```
 
 See [`docs/DEPLOY-ARC.md`](docs/DEPLOY-ARC.md) and [`docs/CIRCLE-GRANT-SMART-CONTRACT-FLOW.md`](docs/CIRCLE-GRANT-SMART-CONTRACT-FLOW.md).

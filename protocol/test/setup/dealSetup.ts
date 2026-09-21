@@ -24,6 +24,7 @@ export async function setupCompleteDealToRedeem(
   const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
 
   await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+  await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
   await erc20
     .connect(accounts.deployerAccount)
@@ -87,6 +88,7 @@ export async function setupPartialDealToRedeem(
   const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
 
   await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+  await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
   await dealVault
     .connect(accounts.investorAccount)
@@ -128,6 +130,7 @@ export async function setupUnstartedDealToRedeem(
   const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
 
   await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
+  await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
 
   await dealVault
     .connect(accounts.investorAccount)

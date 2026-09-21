@@ -37,10 +37,14 @@ export const config = {
   investmentTokenSymbol: process.env.INVESTMENT_TOKEN_SYMBOL || '',
   investmentTokenDecimals: process.env.INVESTMENT_TOKEN_DECIMALS || '',
   automaticDealsAcceptance: process.env.AUTOMATIC_DEALS_ACCEPTANCE === 'true',
-  /** Arc testnet (Circle grant / CCTP destination) */
-  arcChainId: Number(process.env.ARC_CHAIN_ID || '5042002'),
-  arcRpcUrl: process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network',
-  arcExplorerUrl: process.env.ARC_EXPLORER_URL || 'https://testnet.arcscan.app',
+  /**
+   * Arc network defaults (Circle grant). Prefer env overrides.
+   * Mainnet: chainId 5042 / rpc.mainnet.arc.io — see protocol/scripts/addresses/arc-mainnet.json
+   * Testnet: chainId 5042002 / rpc.testnet.arc.io — see arc-testnet.json
+   */
+  arcChainId: Number(process.env.ARC_CHAIN_ID || '5042'),
+  arcRpcUrl: process.env.ARC_RPC_URL || 'https://rpc.mainnet.arc.io',
+  arcExplorerUrl: process.env.ARC_EXPLORER_URL || 'https://explorer.arc.io',
   arcUsdcAddress:
     process.env.ARC_USDC_ADDRESS ||
     '0x3600000000000000000000000000000000000000',
