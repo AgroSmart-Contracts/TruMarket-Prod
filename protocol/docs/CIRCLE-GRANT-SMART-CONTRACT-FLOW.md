@@ -122,7 +122,7 @@ Grant structure (from Circle program):
 
 | Grant milestone | Requirement | TruMarket alignment |
 |-----------------|-------------|---------------------|
-| **M1 — $5,000** | Launch on **Arc testnet** with core functionality validated | Deploy `DealsManager` + USDC on Arc testnet; set API env to Arc RPC; create deal in app → **on-chain mint + `DealVault` deploy** verifiable via explorer. Demo: deal NFT, vault address, milestone `proceed`, borrower `donateToDeal`. |
+| **M1 — $5,000** | Launch on **Arc testnet** with core functionality validated | Deploy `DealsManager` + USDC on Arc testnet; set API env to Arc RPC; create deal in app → **on-chain mint + `DealVault` deploy** verifiable via explorer. Demo: deal NFT, vault address, borrower `donateToDeal`. |
 | **M1** | Maintain / enhance **Circle CCTP** integrations | Cross-chain USDC into Lagoon pool (investor app / `trumarket-finance-with-safe`); CCTP moves USDC between chains **into pool capital**, while **deal registry stays on Arc** (or home chain). Composes: CCTP (liquidity) + DealsManager (deal truth). |
 | **M1 (optional)** | **Circle Bridge Kit** for simplified cross-chain USDC | Optional UX layer on top of CCTP for investor deposits; does not replace on-chain deal contracts. |
 | **M1** | Progress report | This doc + demo video: create deal → mint tx → vault → milestone event logs. |
@@ -132,9 +132,9 @@ Grant structure (from Circle program):
 ### Why the split architecture makes sense for Circle
 
 1. **USDC-native on Arc** — `DealVault` and `DealsManager` use ERC-20 USDC (6 decimals). Arc is USDC-first; no custom stablecoin needed for grant scope.
-2. **Verifiable on-chain state** — Each shipment gets an NFT + vault address at mint. Grant reviewers can inspect `DealCreated`, `DealMilestoneChanged`, and `DealCompleted` events without trusting off-chain DB alone.
+2. **Verifiable on-chain state** — Each shipment gets an NFT + vault address at mint. Grant reviewers can inspect `DealCreated`, `BorrowerDonation`, and `DealCompleted` events without trusting off-chain DB alone.
 3. **CCTP fits the capital layer, not the deal registry** — v2.0 routes **investor** USDC through Lagoon + CCTP; **deal identity and repayment** stay in `DealsManager`/`DealVault`. That matches “enhance Circle integrations” while keeping shipment finance auditable on Arc.
-4. **Empty vault + off-chain funding** — `proceed()` handles zero-balance vaults (off-chain/Lagoon-funded deals). On-chain milestone machine still runs; USDC releases when vault holds funds (e.g. borrower repay).
+4. **Empty vault + off-chain funding** — Deals funded from the Lagoon pool have an empty vault. Milestones are tracked off-chain, and the vault only holds USDC once the borrower repays via `donateToDeal`.
 5. **Testnet → mainnet path** — Same Solidity, Hardhat deploy scripts, API `BlockchainService` — only RPC, USDC address, and `DEALS_MANAGER_CONTRACT_ADDRESS` change for Arc.
 
 ---
@@ -143,12 +143,12 @@ Grant structure (from Circle program):
 
 | Path | Responsibility |
 |------|----------------|
-| `protocol/contracts/DealsManager.sol` | Mint, proceed, donate, complete |
+| `protocol/contracts/DealsManager.sol` | Mint, donate, complete, vault admin |
 | `protocol/contracts/DealVault.sol` | Per-deal USDC vault |
 | `protocol/scripts/deploy-arc.ts` | Deploy DealVaultFactory + DealsManager on Arc testnet or mainnet |
 | `protocol/scripts/cctp/bridge-to-arc.ts` | CLI CCTP bridge to Arc |
 | `api/src/cctp/` | `GET /cctp/config` for web |
-| `api/src/blockchain/blockchain.service.ts` | viem client: `mintNFT`, `proceed`, `setDealAsCompleted`, `vault` |
+| `api/src/blockchain/blockchain.service.ts` | viem client: `mintNFT`, `setDealAsCompleted`, `vault` |
 | `api/src/deals/deals.service.ts` | `applyMintAndVaultIfEnabled()` on create/confirm |
 | `api/src/admin/admin.controller.ts` | Manual `POST .../nft/mint` |
 | `web/.../BridgeUsdcDialog.tsx` | User CCTP bridge (Bridge Kit + Web3Auth) |
@@ -166,7 +166,7 @@ Full deployment steps: **[DEPLOY-ARC.md](./DEPLOY-ARC.md)**.
 3. Configure API + web env (Arc RPC, DealsManager address, USDC, `AUTOMATIC_DEALS_ACCEPTANCE=true`)
 4. Bridge test USDC: `npm run bridge:arc` or web **Bridge USDC to Arc**
 5. Create a deal in the app; confirm mint tx and new `DealVault` on Arcscan
-6. (Optional) `proceed` / `donateToDeal` demo for grant video
+6. (Optional) `donateToDeal` demo for grant video
 7. (Optional) Lagoon/Gateway deposit in finance repo
 8. Ship progress summary + demo video for Circle
 

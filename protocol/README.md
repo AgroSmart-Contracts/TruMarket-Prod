@@ -118,4 +118,4 @@ ABI copies live in `api/`, `web/`, and `deploy-sc/` — regenerate from `npx har
 
 ## Security
 
-v1.1.0 audit fixes (C-01, C-02, H-02, M-01, L-01, L-10) are in `CHANGELOG.md`. Tests cover reentrancy, inflation attacks, milestone math, and borrower changes.
+Audit history, scope, trust model and review focus areas: [`security-audits/README.md`](security-audits/README.md).
