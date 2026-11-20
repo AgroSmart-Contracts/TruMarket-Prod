@@ -86,6 +86,11 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
         super.transferOwnership(newOwner);
     }
 
+    /// @notice Disabled. Renouncing would permanently lock every deal vault.
+    function renounceOwnership() public view override onlyOwner {
+        revert("Renounce disabled");
+    }
+
     /**
      * @notice Registers a new deal as an ERC-721 and deploys its `DealVault`.
      * @param maxDeposit_ Maximum deposit / repayment reference amount for the vault
