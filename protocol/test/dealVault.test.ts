@@ -1,650 +1,463 @@
 import { expect } from 'chai';
 import hre from 'hardhat';
-import { ethers } from 'hardhat';
-import { deploy, setupCompleteDealToRedeem, setupPartialDealToRedeem, setupUnstartedDealToRedeem, Accounts } from './setup';
-import { DealsManager, ERC20Mock, DealVault } from '../typechain-types';
+import { ethers } from 'ethers';
+import { deployStandaloneVault, Accounts } from './setup';
+import { DealVault, ERC20Mock } from '../typechain-types';
 import '@nomicfoundation/hardhat-ethers';
-import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 
+/**
+ * DealVault unit tests. Vaults here are deployed directly with an EOA owner
+ * (`dealsManagerAccount`), unpaused and deposit-unblocked, so the legacy
+ * deposit / mint / redeem / withdraw path can be exercised. DealsManager vaults
+ * cannot reach this state (see dealsManager.test.ts).
+ */
 const accounts: Accounts = {} as any;
-
-interface Fixture {
-  vault: DealVault;
-  dealsManager: DealsManager;
-  token: ERC20Mock;
-  accounts: {
-    financialAccount: HardhatEthersSigner;
-    borrowerAccount: HardhatEthersSigner;
-  };
-}
-
-async function deployFixture(): Promise<Fixture> {
-  const [financialAccount, borrowerAccount] = await ethers.getSigners();
-
-  // Deploy token
-  const Token = await ethers.getContractFactory("ERC20Mock");
-  const token = await Token.deploy();
-
-  const DealVaultFactory = await ethers.getContractFactory("DealVaultFactory");
-  const vaultFactory = await DealVaultFactory.deploy();
-
-  const DealsManager = await ethers.getContractFactory("DealsManager");
-  const dealsManager = await DealsManager.deploy(
-    borrowerAccount.address,
-    await token.getAddress(),
-    await vaultFactory.getAddress()
-  );
-
-  // Get vault from first deal
-    const amount = ethers.parseEther("100");
-  await dealsManager.connect(borrowerAccount).mint(amount, borrowerAccount.address);
-  await dealsManager.connect(borrowerAccount).reopenVault(0);
-      await dealsManager.connect(borrowerAccount).unblockVaultDeposits(0);
-  const vaultAddress = await dealsManager.vault(0);
-  const vault = await ethers.getContractAt("DealVault", vaultAddress) as DealVault;
-
-  return {
-    vault,
-    dealsManager,
-    token,
-    accounts: {
-      financialAccount,
-      borrowerAccount
-    }
-  };
-}
+const MAX = ethers.parseEther('100');
+const MIN = 1_000_000n;
 
 describe('DealVault', function () {
   before(async () => {
-    const [wallet1, wallet2, wallet3, wallet4] =
-      await hre.ethers.getSigners();
-
+    const [wallet1, wallet2, wallet3, wallet4] = await hre.ethers.getSigners();
     accounts.deployerAccount = wallet1;
-    accounts.financialAccount = wallet2;
-    accounts.dealsManagerAccount = wallet3;
+    accounts.financialAccount = wallet2; // second investor / borrower
+    accounts.dealsManagerAccount = wallet3; // vault owner
     accounts.investorAccount = wallet4;
   });
 
-  describe('Deposit', () => {
-    it('should allow investor to deposit funds', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
+  const owner = () => accounts.dealsManagerAccount;
+  const investor = () => accounts.investorAccount;
 
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
+  async function fund(erc20: ERC20Mock, vault: DealVault, who = investor(), amount = ethers.parseEther('500')) {
+    await erc20.mint(who.address, amount);
+    await erc20.connect(who).approve(await vault.getAddress(), amount);
+  }
 
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
+  async function depositAs(vault: DealVault, erc20: ERC20Mock, assets: bigint, who = investor()) {
+    await fund(erc20, vault, who);
+    await vault.connect(who).deposit(assets, who.address);
+  }
 
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
+  async function donateAsOwner(vault: DealVault, erc20: ERC20Mock, amount: bigint) {
+    await erc20.mint(owner().address, amount);
+    await erc20.connect(owner()).approve(await vault.getAddress(), amount);
+    return vault.connect(owner()).donate(amount);
+  }
 
-      // mint investor tokens
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.investorAccount.address, ethers.parseEther('500'));
-
-      // allow vault to transfer investor funds
-      await erc20
-        .connect(accounts.investorAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
-
-      // deposit investor funds
-      await dealVault
-        .connect(accounts.investorAccount)
-        .deposit(ethers.parseEther('100'), accounts.investorAccount.address);
-
-      const balance = await erc20.balanceOf(vaultAddress);
-      expect(balance).to.equal(ethers.parseEther('100'));
+  describe('constructor', () => {
+    it('should set up the vault', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      expect(await vault.asset()).to.equal(await erc20.getAddress());
+      expect(await vault.owner()).to.equal(owner().address);
+      expect(await vault.decimals()).to.equal(18 + 6); // decimals offset 6
+      expect(await vault.minDeposit()).to.equal(MIN);
+      expect(await vault.paused()).to.equal(false);
+      expect(await vault.depositBlocked()).to.equal(false);
     });
 
-    it('should allow financial account to deposit funds', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      // mint financial account tokens
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.financialAccount.address, ethers.parseEther('500'));
-
-      // allow vault to transfer financial account funds
-      await erc20
-        .connect(accounts.financialAccount)
-        .approve(vaultAddress, ethers.parseEther('500'));
-
-      // deposit financial account funds
-      await dealVault
-        .connect(accounts.financialAccount)
-        .deposit(ethers.parseEther('100'), accounts.financialAccount.address);
-
-      const balance = await erc20.balanceOf(vaultAddress);
-      expect(balance).to.equal(ethers.parseEther('100'));
+    it('should not approve the deployer to spend vault funds', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      expect(
+        await erc20.allowance(await vault.getAddress(), accounts.deployerAccount.address),
+      ).to.equal(0);
     });
-  });
 
-  describe('Redeem', () => {
-    it('should allow investor to redeem funds from completed deal', async () => {
-      const { erc20, dealVault } = await setupCompleteDealToRedeem(hre, accounts);
-
-      const shares = await dealVault.balanceOf(accounts.investorAccount.address);
-      const initialBalance = await erc20.balanceOf(accounts.investorAccount.address);
-      await dealVault.connect(accounts.investorAccount).redeem(
-        shares,
-        accounts.investorAccount.address,
-        accounts.investorAccount.address
+    it('should reject invalid parameters', async () => {
+      const { erc20 } = await deployStandaloneVault(hre, accounts);
+      const Vault = await hre.ethers.getContractFactory('DealVault');
+      const token = await erc20.getAddress();
+      await expect(Vault.deploy(ethers.ZeroAddress, MAX, MAX, owner().address)).to.be.revertedWith(
+        'Invalid underlying token',
       );
-      const finalBalance = await erc20.balanceOf(accounts.investorAccount.address);
-
-      expect(finalBalance).to.be.greaterThan(initialBalance);
-      expect(await dealVault.balanceOf(accounts.investorAccount.address)).to.equal(0);
-    });
-
-  });
-
-  describe('Max Deposit and Mint', () => {
-    it('should return 0 max deposit while paused or deposit-blocked', async () => {
-      const { dealsManager } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      // Default v2 vault: paused + deposit-blocked
-      expect(await dealVault.maxDeposit(accounts.investorAccount.address)).to.equal(0n);
-      expect(await dealVault.maxMint(accounts.investorAccount.address)).to.equal(0n);
-
-      // reopenVault unpauses but leaves deposits blocked
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      expect(await dealVault.maxDeposit(accounts.investorAccount.address)).to.equal(0n);
-      expect(await dealVault.maxMint(accounts.investorAccount.address)).to.equal(0n);
-    });
-
-    it('should return correct max deposit amount after deposits are unblocked', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      const maxDeposit = await dealVault.maxDeposit(accounts.investorAccount.address);
-      expect(maxDeposit).to.equal(ethers.parseEther('100'));
-    });
-
-    it('should return correct max mint amount after deposits are unblocked', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      const maxDeposit = await dealVault.maxDeposit(accounts.investorAccount.address);
-      const maxMint = await dealVault.maxMint(accounts.investorAccount.address);
-      expect(maxDeposit).to.equal(ethers.parseEther('100'));
-      expect(maxMint).to.equal(await dealVault.convertToShares(maxDeposit));
-    });
-  });
-
-  describe('Pause and Unpause', () => {
-    it('should allow owner to pause and unpause the vault', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      expect(await dealVault.paused()).to.be.true;
-
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
-
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.investorAccount.address, ethers.parseEther('500'));
-
-      await erc20
-        .connect(accounts.investorAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
-
-      await dealVault
-        .connect(accounts.investorAccount)
-        .deposit(ethers.parseEther('100'), accounts.investorAccount.address);
-
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.financialAccount.address, ethers.parseEther('110'));
-
-      await erc20
-        .connect(accounts.financialAccount)
-        .approve(await dealsManager.getAddress(), ethers.parseEther('110'));
-
-      await dealsManager
-        .connect(accounts.financialAccount)
-        .donateToDeal(0, ethers.parseEther('110'));
-
-      await dealsManager.connect(accounts.dealsManagerAccount).setDealCompleted(0);
-      expect(await dealVault.paused()).to.be.false;
-    });
-
-    it('should prevent deposits when paused', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.investorAccount.address, ethers.parseEther('500'));
-
-      await erc20
-        .connect(accounts.investorAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
-
-      await expect(
-        dealVault
-          .connect(accounts.investorAccount)
-          .deposit(ethers.parseEther('100'), accounts.investorAccount.address)
-      ).to.be.rejectedWith('Unfinished Deal');
-    });
-  });
-
-  describe('Withdraw', () => {
-    it('should allow investor to withdraw funds from completed deal', async () => {
-      const { erc20, dealVault } = await setupCompleteDealToRedeem(hre, accounts);
-
-      const initialBalance = await erc20.balanceOf(accounts.investorAccount.address);
-      await dealVault.connect(accounts.investorAccount).withdraw(
-        ethers.parseEther('100'),
-        accounts.investorAccount.address,
-        accounts.investorAccount.address
+      await expect(Vault.deploy(token, 0, MAX, owner().address)).to.be.revertedWith(
+        'Max deposit must be positive',
       );
-      const finalBalance = await erc20.balanceOf(accounts.investorAccount.address);
-
-      expect(finalBalance - initialBalance).to.equal(ethers.parseEther('100'));
-    });
-
-    it('should prevent withdrawals when paused', async () => {
-      const { dealsManager } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      await expect(
-        dealVault.connect(accounts.investorAccount).withdraw(
-          ethers.parseEther('1'),
-          accounts.investorAccount.address,
-          accounts.investorAccount.address
-        )
-      ).to.be.rejectedWith('Unfinished Deal');
+      await expect(Vault.deploy(token, MAX, 0, owner().address)).to.be.revertedWith(
+        'Max mint must be positive',
+      );
     });
   });
 
-  describe('Mint', () => {
-    it('should allow investor to mint shares', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
+  describe('deposit', () => {
+    it('should mint shares at the 1e6 virtual offset and emit Deposit', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await fund(erc20, vault);
 
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
+      await expect(vault.connect(investor()).deposit(MIN, investor().address))
+        .to.emit(vault, 'Deposit')
+        .withArgs(investor().address, investor().address, MIN, MIN * 1_000_000n);
 
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
+      expect(await vault.balanceOf(investor().address)).to.equal(10n ** 12n);
+      expect(await erc20.balanceOf(await vault.getAddress())).to.equal(MIN);
+    });
 
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
+    it('should reject invalid deposits', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await fund(erc20, vault);
+      const v = vault.connect(investor());
 
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.investorAccount.address, ethers.parseEther('500'));
+      await expect(v.deposit(MIN, ethers.ZeroAddress)).to.be.revertedWith('Invalid receiver address');
+      await expect(v.deposit(MIN - 1n, investor().address)).to.be.revertedWith(
+        'Deposit amount below minimum',
+      );
+      await expect(v.deposit(MAX + 1n, investor().address)).to.be.revertedWith('Exceeds max deposit');
 
-      await erc20
-        .connect(accounts.investorAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
+      await vault.connect(owner()).blockDeposits();
+      await expect(v.deposit(MIN, investor().address)).to.be.revertedWith('Forbidden');
 
+      await vault.connect(owner()).pause();
+      await expect(v.deposit(MIN, investor().address)).to.be.revertedWith('Unfinished Deal');
+    });
+
+    it('should cap deposits on principal, not on donations', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await donateAsOwner(vault, erc20, ethers.parseEther('50'));
+      await fund(erc20, vault);
+      await vault.connect(investor()).deposit(MAX, investor().address);
+      expect(await vault.totalAssets()).to.equal(ethers.parseEther('150'));
+    });
+  });
+
+  describe('mint', () => {
+    it('should charge previewMint assets and emit Deposit', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await fund(erc20, vault);
       const shares = ethers.parseEther('100');
-      const assets = await dealVault.convertToAssets(shares);
-      await dealVault
-        .connect(accounts.investorAccount)
-        .mint(shares, accounts.investorAccount.address);
+      const assets = await vault.previewMint(shares);
+      expect(assets).to.equal(10n ** 14n);
 
-      const balance = await erc20.balanceOf(vaultAddress);
-      expect(balance).to.equal(assets);
-      expect(await dealVault.balanceOf(accounts.investorAccount.address)).to.equal(shares);
+      await expect(vault.connect(investor()).mint(shares, investor().address))
+        .to.emit(vault, 'Deposit')
+        .withArgs(investor().address, investor().address, assets, shares);
+
+      expect(await vault.balanceOf(investor().address)).to.equal(shares);
+      expect(await erc20.balanceOf(await vault.getAddress())).to.equal(assets);
+      expect(await vault.maxDeposit(investor().address)).to.equal(MAX - assets);
+    });
+
+    it('should reject invalid mints', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await fund(erc20, vault);
+      const v = vault.connect(investor());
+      const okShares = 10n ** 12n;
+
+      await expect(v.mint(okShares, ethers.ZeroAddress)).to.be.revertedWith('Invalid receiver address');
+      await expect(v.mint(0, investor().address)).to.be.revertedWith('Share amount must be positive');
+      await expect(v.mint(1_000_000n, investor().address)).to.be.revertedWith(
+        'Equivalent asset amount below minimum',
+      );
+      await expect(v.mint((MAX + 1n) * 1_000_000n, investor().address)).to.be.revertedWith(
+        'Exceeds max deposit',
+      );
+
+      await vault.connect(owner()).blockDeposits();
+      await expect(v.mint(okShares, investor().address)).to.be.revertedWith('Forbidden');
+
+      await vault.connect(owner()).pause();
+      await expect(v.mint(okShares, investor().address)).to.be.revertedWith('Unfinished Deal');
     });
   });
 
-  describe('Transfer to Borrower', () => {
-    it('should allow owner to transfer funds to borrower', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
+  describe('maxDeposit / maxMint', () => {
+    it('should return remaining principal headroom', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      expect(await vault.maxDeposit(investor().address)).to.equal(MAX);
 
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
+      await depositAs(vault, erc20, ethers.parseEther('40'));
+      const remaining = ethers.parseEther('60');
+      expect(await vault.maxDeposit(investor().address)).to.equal(remaining);
+      expect(await vault.maxMint(investor().address)).to.equal(await vault.convertToShares(remaining));
+    });
 
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
+    it('should return 0 when headroom is below the minimum deposit', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, MAX - (MIN - 1n));
+      expect(await vault.maxDeposit(investor().address)).to.equal(0);
+      expect(await vault.maxMint(investor().address)).to.equal(0);
+    });
 
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
+    it('should return the headroom when it equals the minimum deposit', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, MAX - MIN);
+      expect(await vault.maxDeposit(investor().address)).to.equal(MIN);
+      expect(await vault.maxMint(investor().address)).to.equal(await vault.convertToShares(MIN));
+      await vault.connect(investor()).deposit(MIN, investor().address);
+      expect(await vault.maxDeposit(investor().address)).to.equal(0);
+      expect(await vault.maxMint(investor().address)).to.equal(0);
+    });
 
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.investorAccount.address, ethers.parseEther('500'));
+    it('should return 0 while paused or deposit-blocked', async () => {
+      const { vault } = await deployStandaloneVault(hre, accounts);
+      await vault.connect(owner()).blockDeposits();
+      expect(await vault.maxDeposit(investor().address)).to.equal(0);
+      expect(await vault.maxMint(investor().address)).to.equal(0);
 
-      await erc20
-        .connect(accounts.investorAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
-
-      await dealVault
-        .connect(accounts.investorAccount)
-        .deposit(ethers.parseEther('100'), accounts.investorAccount.address);
-
-      const borrowerBalanceBefore = await erc20.balanceOf(accounts.financialAccount.address);
-      expect(borrowerBalanceBefore).to.equal(0);
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .transferFromVault(0, ethers.parseEther('100'), true);
-
-      const borrowerBalanceAfter = await erc20.balanceOf(accounts.financialAccount.address);
-      expect(borrowerBalanceAfter).to.equal(ethers.parseEther('100'));
+      await vault.connect(owner()).unblockDeposits();
+      await vault.connect(owner()).pause();
+      expect(await vault.maxDeposit(investor().address)).to.equal(0);
+      expect(await vault.maxMint(investor().address)).to.equal(0);
     });
   });
 
-  describe('Block and Unblock Deposits', () => {
-    it('should block deposits after completion when vault stays paused', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
+  describe('maxWithdraw / maxRedeem', () => {
+    it('should return the holder position when unpaused and 0 when paused', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      const assets = ethers.parseEther('10');
+      await depositAs(vault, erc20, assets);
+      const shares = await vault.balanceOf(investor().address);
 
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
+      expect(await vault.maxRedeem(investor().address)).to.equal(shares);
+      expect(await vault.maxWithdraw(investor().address)).to.equal(await vault.convertToAssets(shares));
+      expect(await vault.maxWithdraw(investor().address)).to.be.greaterThan(0);
 
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
+      await vault.connect(owner()).pause();
+      expect(await vault.maxRedeem(investor().address)).to.equal(0);
+      expect(await vault.maxWithdraw(investor().address)).to.equal(0);
+    });
+  });
 
-      await dealsManager.connect(accounts.dealsManagerAccount).setDealCompleted(0);
+  describe('redeem', () => {
+    it('should pay out principal plus donated repayment', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, MAX);
+      await donateAsOwner(vault, erc20, ethers.parseEther('10'));
+      const shares = await vault.balanceOf(investor().address);
+      const expected = await vault.convertToAssets(shares);
+      const before = await erc20.balanceOf(investor().address);
 
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.investorAccount.address, ethers.parseEther('500'));
+      await expect(vault.connect(investor()).redeem(shares, investor().address, investor().address))
+        .to.emit(vault, 'Withdraw')
+        .withArgs(investor().address, investor().address, investor().address, expected, shares);
 
-      await erc20
-        .connect(accounts.investorAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
+      expect((await erc20.balanceOf(investor().address)) - before).to.equal(expected);
+      expect(expected).to.be.greaterThan(MAX);
+      expect(await vault.totalSupply()).to.equal(0);
+      expect(await vault.maxDeposit(investor().address)).to.equal(MAX);
+    });
+
+    it('should reduce principal by the assets paid out', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, MAX);
+      const half = (await vault.balanceOf(investor().address)) / 2n;
+      const paid = await vault.convertToAssets(half);
+
+      await vault.connect(investor()).redeem(half, investor().address, investor().address);
+      expect(await vault.maxDeposit(investor().address)).to.equal(paid);
+    });
+
+    it('should spend allowance when redeeming for another owner', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, ethers.parseEther('10'));
+      const shares = await vault.balanceOf(investor().address);
+      const spender = accounts.financialAccount;
 
       await expect(
-        dealVault
-          .connect(accounts.investorAccount)
-          .deposit(ethers.parseEther('100'), accounts.investorAccount.address)
-      ).to.be.rejectedWith('Unfinished Deal');
+        vault.connect(spender).redeem(shares, spender.address, investor().address),
+      ).to.be.revertedWithCustomError(vault, 'ERC20InsufficientAllowance');
+
+      await vault.connect(investor()).approve(spender.address, shares);
+      await vault.connect(spender).redeem(shares, spender.address, investor().address);
+      expect(await vault.allowance(investor().address, spender.address)).to.equal(0);
+      expect(await erc20.balanceOf(spender.address)).to.equal(ethers.parseEther('10'));
     });
 
-    it('should unpause vault after repayment and completion', async function () {
-      const { dealsManager, token, accounts } = await loadFixture(deployFixture);
-      const { borrowerAccount } = accounts;
-      const totalAmount = ethers.parseEther('110');
-      const vaultAddress = await dealsManager.vault(0);
+    it('should reject invalid redemptions', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, ethers.parseEther('10'));
+      const v = vault.connect(investor());
+      const me = investor().address;
 
-      await token.mint(borrowerAccount.address, totalAmount);
-      await token.connect(borrowerAccount).approve(await dealsManager.getAddress(), totalAmount);
-      await dealsManager.connect(borrowerAccount).donateToDeal(0, totalAmount);
-      await dealsManager.connect(borrowerAccount).setDealCompleted(0);
+      await expect(v.redeem(1, ethers.ZeroAddress, me)).to.be.revertedWith('Invalid receiver address');
+      await expect(v.redeem(1, me, ethers.ZeroAddress)).to.be.revertedWith('Invalid owner address');
+      await expect(v.redeem(0, me, me)).to.be.revertedWith('Shares must be positive');
+      await expect(v.redeem(1, me, me)).to.be.revertedWith('Insufficient assets for redemption');
 
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress);
-      expect(await dealVault.paused()).to.be.false;
+      await vault.connect(owner()).pause();
+      await expect(v.redeem(1, me, me)).to.be.revertedWith('Unfinished Deal');
+    });
+  });
+
+  describe('withdraw', () => {
+    it('should burn previewWithdraw shares and emit Withdraw', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, MAX);
+      const assets = ethers.parseEther('30');
+      const shares = await vault.previewWithdraw(assets);
+      const before = await erc20.balanceOf(investor().address);
+
+      await expect(vault.connect(investor()).withdraw(assets, investor().address, investor().address))
+        .to.emit(vault, 'Withdraw')
+        .withArgs(investor().address, investor().address, investor().address, assets, shares);
+
+      expect((await erc20.balanceOf(investor().address)) - before).to.equal(assets);
+      expect(await vault.maxDeposit(investor().address)).to.equal(assets);
     });
 
-    it('should prevent deposits when vault is paused at mint', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      // Try to deposit while vault remains paused/blocked from mint
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.investorAccount.address, ethers.parseEther('500'));
-
-      await erc20
-        .connect(accounts.investorAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
+    it('should spend allowance when withdrawing for another owner', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, ethers.parseEther('10'));
+      const spender = accounts.financialAccount;
+      const assets = ethers.parseEther('5');
 
       await expect(
-        dealVault
-          .connect(accounts.investorAccount)
-          .deposit(ethers.parseEther('100'), accounts.investorAccount.address)
-      ).to.be.rejectedWith('Unfinished Deal');
+        vault.connect(spender).withdraw(assets, spender.address, investor().address),
+      ).to.be.revertedWithCustomError(vault, 'ERC20InsufficientAllowance');
+
+      await vault.connect(investor()).approve(spender.address, await vault.previewWithdraw(assets));
+      await vault.connect(spender).withdraw(assets, spender.address, investor().address);
+      expect(await erc20.balanceOf(spender.address)).to.equal(assets);
+    });
+
+    it('should reject invalid withdrawals', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await depositAs(vault, erc20, ethers.parseEther('10'));
+      const v = vault.connect(investor());
+      const me = investor().address;
+
+      await expect(v.withdraw(1, ethers.ZeroAddress, me)).to.be.revertedWith('Invalid receiver address');
+      await expect(v.withdraw(1, me, ethers.ZeroAddress)).to.be.revertedWith('Invalid owner address');
+      await expect(v.withdraw(0, me, me)).to.be.revertedWith('Assets must be positive');
+
+      await vault.connect(owner()).pause();
+      await expect(v.withdraw(1, me, me)).to.be.revertedWith('Unfinished Deal');
     });
   });
 
-  describe('Min Deposit', () => {
-    it('should update minimum deposit amount', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      // Fund the vault first
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.financialAccount.address, ethers.parseEther('100'));
-
-      await erc20
-        .connect(accounts.financialAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
-
-      await dealVault
-        .connect(accounts.financialAccount)
-        .deposit(ethers.parseEther('100'), accounts.financialAccount.address);
-
-      expect(await dealVault.minDeposit()).to.equal(1_000_000n);
+  describe('owner controls', () => {
+    it('should pause and unpause', async () => {
+      const { vault } = await deployStandaloneVault(hre, accounts);
+      await expect(vault.connect(owner()).pause()).to.emit(vault, 'Paused');
+      expect(await vault.paused()).to.equal(true);
+      await expect(vault.connect(owner()).unpause()).to.emit(vault, 'Unpaused');
+      expect(await vault.paused()).to.equal(false);
     });
 
-    it('should fail to set zero minimum deposit', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      // Fund the vault first
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.financialAccount.address, ethers.parseEther('100'));
-
-      await erc20
-        .connect(accounts.financialAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
-
-      await dealVault
-        .connect(accounts.financialAccount)
-        .deposit(ethers.parseEther('100'), accounts.financialAccount.address);
-
-      // Use DealsManager to try setting zero min deposit through proceed
-      expect(await dealVault.minDeposit()).to.not.equal(0);
-    });
-  });
-
-  describe('Donate', () => {
-    it('should allow borrower to donate via DealsManager', async function () {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const totalAmount = ethers.parseEther('110');
-
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(ethers.parseEther('100'), accounts.financialAccount.address);
-
-      const vaultAddress = await dealsManager.vault(0);
-
-      await erc20.mint(accounts.financialAccount.address, totalAmount);
-      await erc20
-        .connect(accounts.financialAccount)
-        .approve(await dealsManager.getAddress(), totalAmount);
-
-      await dealsManager
-        .connect(accounts.financialAccount)
-        .donateToDeal(0, totalAmount);
-
-      expect(await erc20.balanceOf(vaultAddress)).to.equal(totalAmount);
+    it('should block and unblock deposits', async () => {
+      const { vault } = await deployStandaloneVault(hre, accounts);
+      await expect(vault.connect(owner()).blockDeposits()).to.emit(vault, 'DepositsBlocked');
+      expect(await vault.depositBlocked()).to.equal(true);
+      await expect(vault.connect(owner()).unblockDeposits()).to.emit(vault, 'DepositsUnblocked');
+      expect(await vault.depositBlocked()).to.equal(false);
     });
 
-    it('should fail to donate zero amount', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
+    it('should set the minimum deposit', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await expect(vault.connect(owner()).setMinDeposit(0)).to.be.revertedWith(
+        'Minimum deposit must be positive',
+      );
+      await vault.connect(owner()).setMinDeposit(5n * MIN);
+      expect(await vault.minDeposit()).to.equal(5n * MIN);
 
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
+      await fund(erc20, vault);
+      await expect(vault.connect(investor()).deposit(2n * MIN, investor().address)).to.be.revertedWith(
+        'Deposit amount below minimum',
+      );
+    });
 
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
+    it('should accept donations without minting shares', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      const amount = ethers.parseEther('10');
+      await expect(donateAsOwner(vault, erc20, amount))
+        .to.emit(vault, 'Donation')
+        .withArgs(owner().address, amount);
+      expect(await vault.totalAssets()).to.equal(amount);
+      expect(await vault.totalSupply()).to.equal(0);
+      await expect(vault.connect(owner()).donate(0)).to.be.revertedWith('Amount must be positive');
+    });
 
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
+    it('should transfer funds to a recipient', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await donateAsOwner(vault, erc20, ethers.parseEther('10'));
+      const to = accounts.financialAccount.address;
+      const v = vault.connect(owner());
 
-      // Fund the vault first
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.financialAccount.address, ethers.parseEther('100'));
+      await expect(v.transferToBorrower(ethers.ZeroAddress, 1)).to.be.revertedWith(
+        'Invalid borrower address',
+      );
+      await expect(v.transferToBorrower(to, 0)).to.be.revertedWith('Amount must be positive');
+      await expect(v.transferToBorrower(to, ethers.parseEther('11'))).to.be.revertedWith(
+        'Insufficient funds',
+      );
+      await expect(v.transferToBorrower(to, ethers.parseEther('10')))
+        .to.emit(vault, 'TransferToBorrower')
+        .withArgs(to, ethers.parseEther('10'));
+      expect(await erc20.balanceOf(to)).to.equal(ethers.parseEther('10'));
+    });
 
-      await erc20
-        .connect(accounts.financialAccount)
-        .approve(vaultAddress, ethers.parseEther('100'));
+    it('should complete only after assets exceed maxDeposit', async () => {
+      const { erc20, vault } = await deployStandaloneVault(hre, accounts);
+      await vault.connect(owner()).pause();
+      await donateAsOwner(vault, erc20, MAX);
+      await expect(vault.connect(owner()).complete()).to.be.revertedWith('Waiting for borrower funds');
 
-      await dealVault
-        .connect(accounts.financialAccount)
-        .deposit(ethers.parseEther('100'), accounts.financialAccount.address);
+      await donateAsOwner(vault, erc20, 1n);
+      await expect(vault.connect(owner()).complete()).to.emit(vault, 'DealCompleted');
+      expect(await vault.paused()).to.equal(false);
 
-      // Fund the borrower account
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.financialAccount.address, ethers.parseEther('10'));
+      // already unpaused: still completes
+      await expect(vault.connect(owner()).complete()).to.emit(vault, 'DealCompleted');
+    });
 
-      await erc20
-        .connect(accounts.financialAccount)
-        .approve(vaultAddress, ethers.parseEther('10'));
-
-      // Use DealsManager to try donating zero amount through proceed
-      expect(await erc20.balanceOf(vaultAddress)).to.not.equal(0);
+    it('should reject every owner-only call from a non-owner', async () => {
+      const { vault } = await deployStandaloneVault(hre, accounts);
+      const v = vault.connect(investor());
+      const calls = [
+        () => v.pause(),
+        () => v.unpause(),
+        () => v.blockDeposits(),
+        () => v.unblockDeposits(),
+        () => v.setMinDeposit(MIN),
+        () => v.donate(1),
+        () => v.complete(),
+        () => v.transferToBorrower(investor().address, 1),
+      ];
+      for (const call of calls) {
+        await expect(call()).to.be.revertedWithCustomError(vault, 'OwnableUnauthorizedAccount');
+      }
     });
   });
 
-  describe('Complete', () => {
-    it('should allow completing deal even if vault is not fully funded', async () => {
-      const { dealsManager } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
+  describe('reentrancy', () => {
+    async function reentrantVault() {
+      const token = await hre.ethers.deployContract('ReentrantERC20Mock', accounts.deployerAccount);
+      const { vault } = await deployStandaloneVault(hre, accounts, MAX, token as unknown as ERC20Mock);
+      await token.mint(investor().address, MAX);
+      await token.connect(investor()).approve(await vault.getAddress(), MAX);
+      return { token, vault };
+    }
 
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
+    it('should block reentry during deposit and mint', async () => {
+      const { token, vault } = await reentrantVault();
+      const me = investor().address;
+      const reenter = vault.interface.encodeFunctionData('deposit', [MIN, me]);
 
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
+      await token.setHook(await vault.getAddress(), reenter);
+      await expect(vault.connect(investor()).deposit(MIN, me)).to.be.revertedWithCustomError(
+        vault,
+        'ReentrancyGuardReentrantCall',
+      );
 
-      await dealsManager.connect(accounts.dealsManagerAccount).setDealCompleted(0);
-
-      expect(await dealsManager.completed(0)).to.equal(true);
-      expect(await dealVault.paused()).to.be.true;
+      await token.setHook(await vault.getAddress(), reenter);
+      await expect(vault.connect(investor()).mint(10n ** 12n, me)).to.be.revertedWithCustomError(
+        vault,
+        'ReentrancyGuardReentrantCall',
+      );
     });
 
-    it('should fail to complete if not called by owner', async () => {
-      const { dealsManager, erc20 } = await deploy(hre, accounts);
-      const vaultFunds = ethers.parseEther('100');
+    it('should block reentry during redeem and withdraw', async () => {
+      const { token, vault } = await reentrantVault();
+      const me = investor().address;
+      await vault.connect(investor()).deposit(ethers.parseEther('10'), me);
+      const reenter = vault.interface.encodeFunctionData('redeem', [1n, me, me]);
 
-      await dealsManager
-        .connect(accounts.dealsManagerAccount)
-        .mint(vaultFunds, accounts.financialAccount.address);
-
-      await dealsManager.connect(accounts.dealsManagerAccount).reopenVault(0);
-      await dealsManager.connect(accounts.dealsManagerAccount).unblockVaultDeposits(0);
-
-      const vaultAddress = await dealsManager.vault(0);
-      const dealVault = await hre.ethers.getContractAt('DealVault', vaultAddress) as DealVault;
-
-      // Fund the vault
-      await erc20
-        .connect(accounts.deployerAccount)
-        .mint(accounts.financialAccount.address, ethers.parseEther('500'));
-
-      await erc20
-        .connect(accounts.financialAccount)
-        .approve(vaultAddress, ethers.parseEther('500'));
-
-      await dealVault
-        .connect(accounts.financialAccount)
-        .deposit(ethers.parseEther('100'), accounts.financialAccount.address);
-
+      await token.setHook(await vault.getAddress(), reenter);
       await expect(
-        dealVault
-          .connect(accounts.investorAccount)
-          .complete()
-      ).to.be.revertedWithCustomError(dealVault, 'OwnableUnauthorizedAccount');
+        vault.connect(investor()).redeem(10n ** 18n, me, me),
+      ).to.be.revertedWithCustomError(vault, 'ReentrancyGuardReentrantCall');
+
+      await token.setHook(await vault.getAddress(), reenter);
+      await expect(
+        vault.connect(investor()).withdraw(ethers.parseEther('1'), me, me),
+      ).to.be.revertedWithCustomError(vault, 'ReentrancyGuardReentrantCall');
     });
   });
 });
