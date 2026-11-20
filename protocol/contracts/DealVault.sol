@@ -109,9 +109,7 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         address
     ) public view override returns (uint256) {
         if (paused() || _depositBlocked) return 0;
-        return _maxDeposit > _principalOutstanding
-            ? _maxDeposit - _principalOutstanding
-            : 0;
+        return _remainingDepositCapacity();
     }
 
     /**
@@ -120,11 +118,19 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
      */
     function maxMint(address) public view override returns (uint256) {
         if (paused() || _depositBlocked) return 0;
-        uint256 maxAssets = _maxDeposit > _principalOutstanding
-            ? _maxDeposit - _principalOutstanding
-            : 0;
+        uint256 maxAssets = _remainingDepositCapacity();
         if (maxAssets == 0) return 0;
         return convertToShares(maxAssets);
+    }
+
+    /**
+     * @dev Remaining principal headroom, or 0 when it is below `_minDeposit`
+     *      (a deposit that small would be rejected, so it is not real capacity).
+     */
+    function _remainingDepositCapacity() private view returns (uint256) {
+        if (_maxDeposit <= _principalOutstanding) return 0;
+        uint256 headroom = _maxDeposit - _principalOutstanding;
+        return headroom < _minDeposit ? 0 : headroom;
     }
 
     /**
