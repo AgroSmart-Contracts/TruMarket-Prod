@@ -6,9 +6,9 @@ This folder is the starting point for auditors and security scanners reviewing t
 
 | File | Lines | In scope |
 |------|-------|----------|
-| `protocol/contracts/DealsManager.sol` | 239 | Yes |
-| `protocol/contracts/DealVault.sol` | 393 | Yes |
-| `protocol/contracts/DealVaultFactory.sol` | 18 | Yes |
+| `protocol/contracts/DealsManager.sol` | 246 | Yes |
+| `protocol/contracts/DealVault.sol` | 400 | Yes |
+| `protocol/contracts/DealVaultFactory.sol` | 31 | Yes |
 | `protocol/contracts/interfaces/IDealVault.sol` | 20 | Yes |
 | `protocol/contracts/ERC20Mock.sol` | 18 | No (test only) |
 
@@ -16,7 +16,7 @@ Everything outside `protocol/contracts/` (API, web app, scripts) is out of scope
 
 - Compiler: Solidity 0.8.24, optimizer enabled, 200 runs (`protocol/hardhat.config.ts`)
 - Dependencies: OpenZeppelin Contracts v5
-- Tests: `protocol/test/` (32 Hardhat tests, including an ERC-4626 inflation attack test). Run with `cd protocol && npm install && npx hardhat test`.
+- Tests: `protocol/test/` (64 Hardhat tests, including an ERC-4626 inflation attack test, reentrancy tests and the BugPoCer 5.1.1 regression). Run with `cd protocol && npm install && npx hardhat test`.
 
 ### Deployments
 
@@ -27,11 +27,12 @@ Everything outside `protocol/contracts/` (API, web app, scripts) is out of scope
 
 Underlying asset: Arc native USDC `0x3600000000000000000000000000000000000000` (6 decimals). Address files: `protocol/scripts/addresses/`.
 
-## Previous audit
+## Previous audits
 
 | Date | Reviewer | Covered | Status | Reference |
 |------|----------|---------|--------|-----------|
 | Sep 2026 | Octane (ERC-4626 review) | Share pricing with the virtual offset, rounding, capacity accounting, `max*` views | Fixed in `faee66d`, before the Arc mainnet deploy | [`CIRCLE-GRANT-MILESTONE-2-SUBMISSION.md`](../../docs/CIRCLE-GRANT-MILESTONE-2-SUBMISSION.md) section 4 |
+| Oct 2026 | Olympix (BugPoCer scan + mutation testing) | Full scan of in-scope contracts | Fixes on branch `fix/olympix-bugpocer-findings` | [`2026-10-olympix-bugpocer-response.md`](./2026-10-olympix-bugpocer-response.md) |
 
 The Octane fixes:
 - `reopenVault` no longer unblocks deposits as a side effect.
@@ -64,17 +65,17 @@ More detail: [`protocol/README.md`](../README.md), [`protocol/docs/CIRCLE-GRANT-
 
 These are design choices. Please do not report them as vulnerabilities unless the code behaves differently from what is described here.
 
-- **The `DealsManager` owner is fully trusted.** It is currently an EOA held by the TruMarket API backend. It can mint deals, change a deal's borrower, pause and unpause vaults, block and unblock deposits, change the minimum deposit, and move any vault balance to the borrower or to itself via `transferFromVault`, even while vault shares are outstanding. Funds are routed by TruMarket off-chain, so this is intended.
+- **The `DealsManager` owner is fully trusted.** It is currently an EOA held by the TruMarket API backend. It can mint deals, change a deal's borrower, pause and unpause vaults, block deposits (deposits can never be unblocked after `mint`), and move any vault balance to the borrower or to itself via `transferFromVault`, even while vault shares are outstanding. Funds are routed by TruMarket off-chain, so this is intended.
 - **Each `DealVault` is owned by its `DealsManager`.** `donate`, `complete`, `transferToBorrower`, `pause`, `unpause`, `blockDeposits`, `unblockDeposits` and `setMinDeposit` are owner-only.
 - **Only the registered borrower can call `donateToDeal`** for a deal.
-- **`DealVaultFactory.deploy` is permissionless.** Vaults deployed outside `DealsManager.mint` are not registered and have no effect on the protocol.
+- **`DealVaultFactory` is bound to one `DealsManager`.** Only that contract can call `deploy`, and it is always the vault owner. `DealVault`'s constructor is public, so anyone can deploy a vault directly; such vaults are not TruMarket vaults. The canonical list is `DealsManager.vault(tokenId)`.
 - **Only USDC is supported.** Fee-on-transfer, rebasing and callback tokens are out of scope.
 - **`setDealCompleted` may mark a deal completed without unlocking the vault** when repayment has not exceeded `maxDeposit`. The deal state is then final, and the vault stays paused unless the owner calls `reopenVault`.
 - **No on-chain milestone logic.** Milestone percentages, approvals and supplier payouts are off-chain.
 
 ## Areas we most want reviewed
 
-1. ERC-4626 share pricing when a vault holds few assets but a large share supply (for example after `transferFromVault`), and what happens if the owner then calls `unblockVaultDeposits`.
+1. ERC-4626 share pricing when a vault holds few assets but a large share supply (for example after `transferFromVault`).
 2. Whether any non-owner can reach the legacy `deposit` / `mint` / `redeem` / `withdraw` paths on a vault that was paused and blocked at mint.
 3. Whether `_principalOutstanding` can drift from real deposits through donations, direct transfers, or rounding in `redeem` / `withdraw`.
 4. Any way to drain, lock, or grief a vault without being the owner or the borrower.
@@ -82,5 +83,4 @@ These are design choices. Please do not report them as vulnerabilities unless th
 
 ## Known items
 
-- `DealVault`'s constructor approves `msg.sender` for `maxDeposit`. At deploy time `msg.sender` is `DealVaultFactory`, which has no function that uses the allowance. It is a leftover from when `DealsManager` deployed vaults directly.
 - Token calls use `IERC20.transfer` / `transferFrom` directly, not `SafeERC20`. This is acceptable for USDC, which reverts on failure.

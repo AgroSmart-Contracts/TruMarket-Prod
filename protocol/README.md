@@ -59,8 +59,9 @@ JSON: [`scripts/addresses/arc-mainnet.json`](scripts/addresses/arc-mainnet.json)
 - **Owner-only** `mint(maxDeposit, borrower)` — creates ERC-721 token, deploys a `DealVault` via `DealVaultFactory`, and pauses/blocks direct vault deposits.
 - **`donateToDeal`** — borrower repays USDC into the deal vault (shipment finance UI).
 - **`setDealCompleted`** — marks deal complete; calls `vault.complete()` when repayment exceeds `maxDeposit`.
-- **`reopenVault`** — admin-only; unpauses for legacy redemptions. Deposits stay blocked.
-- **`blockVaultDeposits` / `unblockVaultDeposits`** — admin-only explicit deposit gate (do not unblock after disbursing assets while shares remain).
+- **`reopenVault`** — admin-only; re-blocks deposits, then unpauses for legacy redemptions.
+- **`pauseVault`** — admin-only; pauses a vault again (emergency control).
+- Deposits are blocked at `mint` and there is no way to unblock them on a DealsManager vault.
 - **`transferFromVault`** — admin emergency transfer from vault.
 
 ### DealVault (`Deal Shares` / `DLS`)

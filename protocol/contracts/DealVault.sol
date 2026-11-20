@@ -30,7 +30,9 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  *   compatibility and tests; not used for v2.0 investor flows.
  *
  * @notice ERC-4626 vault (`DLS`) with inflation-attack protection (`_decimalsOffset = 6`).
- *         Owner is always the deploying `DealsManager` instance.
+ *         Vaults created through `DealVaultFactory` are always owned by its bound
+ *         `DealsManager`. The constructor itself is public, so a vault deployed directly
+ *         is not a TruMarket vault; the canonical list is `DealsManager.vault(tokenId)`.
  */
 contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
     /// @notice Maximum amount that can be deposited into the vault
@@ -82,7 +84,6 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         _maxMint = maxMint_;
         _underlying = underlying_;
         _minDeposit = 1e6; // Set a reasonable minimum deposit (e.g., 1 USDC if decimals=6)
-        IERC20(underlying_).approve(msg.sender, maxDeposit_);
     }
 
     /**
@@ -109,9 +110,7 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
         address
     ) public view override returns (uint256) {
         if (paused() || _depositBlocked) return 0;
-        return _maxDeposit > _principalOutstanding
-            ? _maxDeposit - _principalOutstanding
-            : 0;
+        return _remainingDepositCapacity();
     }
 
     /**
@@ -120,11 +119,19 @@ contract DealVault is ERC4626, Ownable, Pausable, ReentrancyGuard {
      */
     function maxMint(address) public view override returns (uint256) {
         if (paused() || _depositBlocked) return 0;
-        uint256 maxAssets = _maxDeposit > _principalOutstanding
-            ? _maxDeposit - _principalOutstanding
-            : 0;
+        uint256 maxAssets = _remainingDepositCapacity();
         if (maxAssets == 0) return 0;
         return convertToShares(maxAssets);
+    }
+
+    /**
+     * @dev Remaining principal headroom, or 0 when it is below `_minDeposit`
+     *      (a deposit that small would be rejected, so it is not real capacity).
+     */
+    function _remainingDepositCapacity() private view returns (uint256) {
+        if (_maxDeposit <= _principalOutstanding) return 0;
+        uint256 headroom = _maxDeposit - _principalOutstanding;
+        return headroom < _minDeposit ? 0 : headroom;
     }
 
     /**
