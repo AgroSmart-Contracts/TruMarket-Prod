@@ -2,22 +2,20 @@ import { ethers } from 'ethers';
 import hre from 'hardhat';
 import * as fs from 'fs';
 import * as path from 'path';
+import { deployProtocol } from './lib/deployProtocol';
 
 async function main() {
-  const [_1, _2, deployerWallet] = await hre.ethers.getSigners();
+  const [deployer, , deployerWallet] = await hre.ethers.getSigners();
 
-  const erc20 = await hre.ethers.deployContract('ERC20Mock');
+  const erc20 = await hre.ethers.deployContract('ERC20Mock', deployer);
   await erc20.waitForDeployment();
 
-  const vaultFactory = await hre.ethers.deployContract('DealVaultFactory');
-  await vaultFactory.waitForDeployment();
-
-  const dealsManager = await hre.ethers.deployContract('DealsManager', [
+  const { vaultFactory, dealsManager } = await deployProtocol(
+    hre,
+    deployer,
     deployerWallet.address,
     await erc20.getAddress(),
-    await vaultFactory.getAddress(),
-  ]);
-  await dealsManager.waitForDeployment();
+  );
 
   // const dealVault = await hre.ethers.deployContract('DealVault', [
   //   await erc20.getAddress(),

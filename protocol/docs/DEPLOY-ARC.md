@@ -82,7 +82,7 @@ cp .env.example .env
 npm run deploy:arc:mainnet
 ```
 
-This deploys **in order**: `DealVaultFactory` → `DealsManager(deployer, USDC, factory)`.
+This deploys **in order**: `DealVaultFactory(predictedDealsManager)` → `DealsManager(deployer, USDC, factory)`. The factory is bound to that DealsManager and only it can deploy vaults; the DealsManager constructor reverts if the binding does not match. Send no other transaction from the deployer wallet between the two deploys.
 
 Output is written to `protocol/scripts/addresses/arc-mainnet.json`.
 

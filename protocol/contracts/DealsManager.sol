@@ -75,6 +75,10 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
     ) ERC721("TruMarketDeals", "TMD") Ownable(initialOwner_) {
         require(underlying_ != address(0), "Invalid underlying token");
         require(vaultFactory_ != address(0), "Invalid vault factory");
+        require(
+            DealVaultFactory(vaultFactory_).dealsManager() == address(this),
+            "Vault factory not bound to this contract"
+        );
         _underlying = underlying_;
         _vaultFactory = DealVaultFactory(vaultFactory_);
     }
@@ -105,11 +109,7 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
 
         uint256 tokenId = _nextTokenId++;
 
-        address vaultAddress = _vaultFactory.deploy(
-            _underlying,
-            maxDeposit_,
-            address(this)
-        );
+        address vaultAddress = _vaultFactory.deploy(_underlying, maxDeposit_);
 
         // v2.0: investor deposits use the Lagoon pool; freeze direct vault deposits.
         IDealVault(vaultAddress).pause();

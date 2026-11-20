@@ -4,6 +4,7 @@ import * as path from 'path';
 import hre from 'hardhat';
 
 import { ARC_MAINNET, ARC_TESTNET } from './cctp/constants';
+import { deployProtocol } from './lib/deployProtocol';
 
 type ArcNetworkConfig = typeof ARC_MAINNET | typeof ARC_TESTNET;
 
@@ -60,15 +61,12 @@ async function main() {
     );
   }
 
-  const vaultFactory = await hre.ethers.deployContract('DealVaultFactory');
-  await vaultFactory.waitForDeployment();
-
-  const dealsManager = await hre.ethers.deployContract('DealsManager', [
+  const { vaultFactory, dealsManager } = await deployProtocol(
+    hre,
+    deployer,
     deployer.address,
     usdcAddress,
-    await vaultFactory.getAddress(),
-  ]);
-  await dealsManager.waitForDeployment();
+  );
 
   const dealsManagerAddress = await dealsManager.getAddress();
   const vaultFactoryAddress = await vaultFactory.getAddress();
