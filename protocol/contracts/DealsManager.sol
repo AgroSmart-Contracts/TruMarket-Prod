@@ -194,31 +194,25 @@ contract DealsManager is ERC721, Ownable2Step, ReentrancyGuard {
     }
 
     /**
-     * @notice Unpauses the vault for legacy redemptions/withdrawals; deposits remain blocked.
-     * @dev Does not call `unblockDeposits`. Re-opening deposits after disbursement enables
-     *      ERC-4626 virtual-offset share inflation when assets ≈ 0 and supply is large.
+     * @notice Unpauses the vault for legacy redemptions/withdrawals. Deposits are always
+     *         re-blocked first, whatever their previous state.
+     * @dev There is no way to unblock deposits on a DealsManager vault after `mint`.
+     *      Open deposits on a low-asset vault would let a new depositor capture later
+     *      `donateToDeal` repayments (ERC-4626 virtual-offset pricing).
      */
     function reopenVault(uint256 tokenId_) external onlyOwner {
         require(tokenId_ < _nextTokenId, "Deal not found");
-        IDealVault(_deals[tokenId_].vault).unpause();
+        IDealVault dealVault = IDealVault(_deals[tokenId_].vault);
+        dealVault.blockDeposits();
+        dealVault.unpause();
     }
 
     /**
-     * @notice Blocks deposits on a deal vault (owner-only; vault owner is this contract).
+     * @notice Pauses a deal vault again (emergency control). Blocks legacy redeem/withdraw.
      */
-    function blockVaultDeposits(uint256 tokenId_) external onlyOwner {
+    function pauseVault(uint256 tokenId_) external onlyOwner {
         require(tokenId_ < _nextTokenId, "Deal not found");
-        IDealVault(_deals[tokenId_].vault).blockDeposits();
-    }
-
-    /**
-     * @notice Explicitly unblocks deposits for intentional legacy/test use only.
-     * @dev Prefer leaving deposits blocked. Enabling deposits after `transferFromVault`
-     *      creates a low-asset/high-supply pricing risk under ERC-4626 virtual offsets.
-     */
-    function unblockVaultDeposits(uint256 tokenId_) external onlyOwner {
-        require(tokenId_ < _nextTokenId, "Deal not found");
-        IDealVault(_deals[tokenId_].vault).unblockDeposits();
+        IDealVault(_deals[tokenId_].vault).pause();
     }
 
     function transferFromVault(
